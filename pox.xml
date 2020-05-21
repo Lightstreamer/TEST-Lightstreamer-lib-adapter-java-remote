@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  
+  <groupId>com.lightstreamer</groupId>
+  <artifactId>ls-adapter-remote</artifactId>
+  <packaging>jar</packaging>
+  <version>1.4.0</version>
+  
+  <name>Lightstreamer Java Remote Adapter API</name>
+  <description>
+	This project includes the source code of the Lightstreamer Java Remote Adapter API.
+	This resource is needed to develop Remote Data Adapters and Remote Metadata Adapters for Lightstreamer Server with Java.
+  </description>
+  <url>https://github.com/Lightstreamer/Lightstreamer-lib-adapter-java-remote</url>
+  
+  <licenses>
+    <license>
+      <name>Apache License 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Giuseppe Corti</name>
+      <email>giuseppe.corti@lightstreamer.com</email>
+      <organization>Lightstreamer</organization>
+      <organizationUrl>https://www.lightstreamer.com/</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:https://github.com/Lightstreamer/Lightstreamer-lib-adapter-java-remote</connection>
+    <developerConnection>scm:git:https://github.com/Lightstreamer/Lightstreamer-lib-adapter-java-remote.git</developerConnection>
+    <url>https://github.com/Lightstreamer/Lightstreamer-lib-adapter-java-remote</url>
+  </scm>
+
+  <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven-javadoc-plugin.version>3.0.1</maven-javadoc-plugin.version>
+    <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
+  </properties>
+
+ <repositories>
+    <repository>
+      <id>lightstreamer</id>
+      <name>Lightstreamer repository</name>
+      <url>https://www.lightstreamer.com/repo/maven</url>
+    </repository>
+  </repositories>
+  
+   <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+	<dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>3.0.2</version>
+      <scope>test,compile</scope>
+    </dependency>
+	<dependency>
+      <groupId>com.lightstreamer</groupId>
+      <artifactId>ls-log-adapter-java</artifactId>
+      <version>1.0.2</version>
+      <scope>test,compile</scope>
+    </dependency>
+  </dependencies>
+
+</project>
