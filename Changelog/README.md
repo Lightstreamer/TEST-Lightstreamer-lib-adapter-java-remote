@@ -144,3 +144,56 @@ and methods.
 
 Added meta-information on method argument names for interface classes,
 so that developer GUIs can take advantage of them.
+
+
+## 1.1.0 - <i>Released on 10 May 2016</i>
+
+<i>Compatible with Adapter Remoting Infrastructure since 1.7.</i><br/>
+<i>May not be compatible with code developed with the previous version; see compatibility notes below.</i>
+
+Introduced parallelization of the invocations of methods on the Remote
+Metadata Adapter; in fact, previously, the invocations were always done
+sequentially, with possible inefficient use of the available resources
+(invocations for the Data Adapter were already done in parallel).
+Also introduced suitable configuration; see the docs for
+MetadataProviderServer and DataProviderServer for details.
+<b>COMPATIBILITY NOTE:</b> <i>If existing Remote
+Metadata Adapters don't support concurrent invocations, sequential
+invocations should be restored by configuration.</i>
+
+Introduced the possibility to configure the keepalive time (which was fixed
+to one second) through the custom "lightstreamer.keepalive.millis"
+system property.
+
+Fixed the API documentation of class Server, by removing the method "init".
+In fact, the method was not meant to be public.
+
+Improved logging; now the detailed log of request-reply messages not including
+notification messages (i.e. data updates) is possible. Moreover, the keepalives
+can now be excluded from the the detailed log of request, reply and notification
+messages.
+
+Added missing javadocs for the RemotingException class and a few other fields.<br/>
+Fixed some mistaken class names and other typos in the javadocs comments.
+Also removed the spurious DataProviderProtocol docs.<br/>
+Revised javadoc formatting style and fixed a formatting error in DataProvider class.<br/>
+Fixed the Javadocs for DataProvider and MetadataProvider interfaces on the way
+implementations are supplied.
+
+
+## 1.0.2 - <i>Released on 16 Jul 2015</i>
+
+<i>Compatible with Adapter Remoting Infrastructure since 1.7.</i><br/>
+<i>Compatible with code developed with the previous version.</i>
+
+Fixed the handling of generic exceptions thrown by a DataProvider or MetadataProvider
+implementation: generic exceptions are now forwarded to the connected Lightstreamer Server
+whenever possible.
+
+
+## 1.0.1 - <i>Released on 21 Jan 2015</i>
+
+<i>Compatible with Adapter Remoting Infrastructure since 1.7.</i><br/>
+
+Included in Lightstreamer distribution. The features are similar
+to the current SDK for .NET Adapters (version 1.9 build 1008).
