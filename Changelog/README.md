@@ -70,7 +70,7 @@ Added clarifications in the documentation of the exception handlers and fixed
 a few obsolete notes.
 
 Discontinued the support for java 7 SDK and runtime environment.
-Java 8 or later is now required.
+Java 8 or later is now required.<br/>
 <b>COMPATIBILITY NOTE:</b> <i>Installations of Remote Adapters
 still based on the discontinued java 7 JVM have to be upgraded. Existing Adapters
 that were compiled for a java 7 or earlier JVM don't need to be upgraded.</i>
@@ -156,7 +156,7 @@ Metadata Adapter; in fact, previously, the invocations were always done
 sequentially, with possible inefficient use of the available resources
 (invocations for the Data Adapter were already done in parallel).
 Also introduced suitable configuration; see the docs for
-MetadataProviderServer and DataProviderServer for details.
+MetadataProviderServer and DataProviderServer for details.<br/>
 <b>COMPATIBILITY NOTE:</b> <i>If existing Remote
 Metadata Adapters don't support concurrent invocations, sequential
 invocations should be restored by configuration.</i>
