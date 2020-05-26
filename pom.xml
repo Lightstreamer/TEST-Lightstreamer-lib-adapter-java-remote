@@ -65,13 +65,11 @@
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
       <version>3.0.2</version>
-      <scope>test,compile</scope>
     </dependency>
 	<dependency>
       <groupId>com.lightstreamer</groupId>
       <artifactId>ls-log-adapter-java</artifactId>
       <version>1.0.2</version>
-      <scope>test,compile</scope>
     </dependency>
   </dependencies>
 
