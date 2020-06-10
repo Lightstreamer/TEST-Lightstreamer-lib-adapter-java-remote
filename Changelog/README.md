@@ -2,7 +2,7 @@
 
 
 
-## 1.4.0 - <i>to be released</i>
+## 1.4.0 - <i>Released on 9 Jun 2020</i>
 
 <i>Compatible with Adapter Remoting Infrastructure since 1.8.</i><br/>
 <i>May not be compatible with code developed with the previous version; see compatibility notes below.</i>

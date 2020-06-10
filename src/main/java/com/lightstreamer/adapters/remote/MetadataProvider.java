@@ -141,7 +141,9 @@ public interface MetadataProvider {
      * is set, this overload will still be invoked, with null principal. <BR>
      * See the base 3-arguments version for other notes.
      * 
-     * @general_edition_note https connections is an optional feature, available
+     * <br>
+     * <b>Edition Note:</b>
+     * <br>https connections is an optional feature, available
      * depending on Edition and License Type.
 	 * To know what features are enabled by your license, please see the License
 	 * tab of the Monitoring Dashboard (by default, available at /dashboard).
@@ -261,7 +263,9 @@ public interface MetadataProvider {
      * <BR>
      * This method runs in the Server authentication thread pool, if defined.
      * 
-     * @general_edition_note Bandwidth Control is an optional feature, available depending
+     * <br>
+     * <b>Edition Note:</b>
+     * <br>Bandwidth Control is an optional feature, available depending
      * on Edition and License Type.
 	 * To know what features are enabled by your license, please see the License
 	 * tab of the Monitoring Dashboard (by default, available at /dashboard).
@@ -283,7 +287,9 @@ public interface MetadataProvider {
      * This method runs in the Server thread pool specific
      * for the Data Adapter that supplies the involved items, if defined.
      * 
-     * @general_edition_note A further global frequency limit could also be imposed by the Server,
+     * <br>
+     * <b>Edition Note:</b>
+     * <br> A further global frequency limit could also be imposed by the Server,
      * depending on Edition and License Type; this specific limit also applies to RAW mode and
      * to unfiltered dispatching.
 	 * To know what features are enabled by your license, please see the License
@@ -564,7 +570,9 @@ public interface MetadataProvider {
      * possible ensure the user is entitled to the specific platform, 
      * device token and application ID.
      * 
-     * @general_edition_note Push Notifications is an optional feature,
+     * <br>
+     * <b>Edition Note:</b>
+     * <br> Push Notifications is an optional feature,
      * available depending on Edition and License Type.
 	 * To know what features are enabled by your license, please see the License
 	 * tab of the Monitoring Dashboard (by default, available at /dashboard).
@@ -592,7 +600,9 @@ public interface MetadataProvider {
      * validation mechanism based on regular expression that may also be used 
      * for this purpose.
      * 
-     * @general_edition_note Push Notifications is an optional feature,
+     * <br>
+     * <b>Edition Note:</b>
+     * <br> Push Notifications is an optional feature,
      * available depending on Edition and License Type.
 	 * To know what features are enabled by your license, please see the License
 	 * tab of the Monitoring Dashboard (by default, available at /dashboard).
@@ -624,7 +634,9 @@ public interface MetadataProvider {
      * Take particular precautions when authorizing device token changes,
      * if possible ensure the user is entitled to the new device token.
      * 
-     * @general_edition_note Push Notifications is an optional feature,
+     * <br>
+     * <b>Edition Note:</b>
+     * <br>Push Notifications is an optional feature,
      * available depending on Edition and License Type.
 	 * To know what features are enabled by your license, please see the License
 	 * tab of the Monitoring Dashboard (by default, available at /dashboard).

@@ -20,13 +20,25 @@ But, if your remote Adapter is based on certain languages/technologies (such as 
 
 In this specific project we provide the full sorce code that makes up the <b>Lightstreamer Java Remote Adapter API</b> library.
 
-## Compatibility ##
+## Compatibility
 
 The library is compatible with [Adapter Remoting Infrastructure](https://lightstreamer.com/docs/adapter_generic_base/ARI%20Protocol.pdf) since version 1.8.
 
+## Using the API
+
+Since the API is available from the Maven Central Repository, to setup your development environment add the following dependency to your pom.xml:
+
+```xml
+<dependency>
+    <groupId>com.lightstreamer</groupId>
+    <artifactId>ls-adapter-remote</artifactId>
+    <version>1.4.0</version>
+</dependency>
+```
+
 ## External Links
 
-- [Maven repository](https://www.lightstreamer.com/repo/maven/)
+- [Maven repository](https://mvnrepository.com/artifact/com.lightstreamer/ls-adapter-remote/)
 
 - [Examples](https://demos.lightstreamer.com/?p=lightstreamer&t=adapter&sadapterjava=remote)
 

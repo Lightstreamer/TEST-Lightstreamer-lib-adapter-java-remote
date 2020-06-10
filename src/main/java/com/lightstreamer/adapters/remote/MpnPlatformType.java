@@ -21,7 +21,9 @@ import javax.annotation.Nullable;
  * <BR>It is used by Lightstreamer to specify the platform associated with the notified client requests.
  * <BR>The available constants refer to the platform types currently supported.
  * 
- * @general_edition_note Push Notifications is an optional feature,
+ * <br>
+ * <b>Edition Note:</b>
+ * <br>Push Notifications is an optional feature,
  * available depending on Edition and License Type.
  * To know what features are enabled by your license, please see the License
  * tab of the Monitoring Dashboard (by default, available at /dashboard).

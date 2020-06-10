@@ -29,8 +29,9 @@ import javax.annotation.Nullable;
  * <LI>The application ID.</LI>
  * <LI>The device token.</LI>
  * </UL>
- * 
- * @general_edition_note Push Notifications is an optional feature,
+ * <br>
+ * <b>Edition Note:</b>
+ * <br>Push Notifications is an optional feature,
  * available depending on Edition and License Type.
  * To know what features are enabled by your license, please see the License
  * tab of the Monitoring Dashboard (by default, available at /dashboard).

@@ -21,7 +21,9 @@ import javax.annotation.Nullable;
  * <BR>For the actual description of the subscription we rely on a generic descriptor accessible
  * via the {@link #getNotificationFormat()} getter, where the structure of the descriptor depends on the platform.
  * 
- * @general_edition_note Push Notifications is an optional feature,
+ * <br>
+ * <b>Edition Note:</b>
+ * <br>Push Notifications is an optional feature,
  * available depending on Edition and License Type.
  * To know what features are enabled by your license, please see the License
  * tab of the Monitoring Dashboard (by default, available at /dashboard).

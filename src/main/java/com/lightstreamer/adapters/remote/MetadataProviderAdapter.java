@@ -64,7 +64,9 @@ public abstract class MetadataProviderAdapter implements MetadataProvider {
      * <BR>In this default implementation, the base 3-arguments version of
      * the method is invoked, where the clientPrincipal argument is discarded.
      * 
-     * @general_edition_note https connections is an optional feature,
+     * <br>
+     * <b>Edition Note:</b>
+     * <br>https connections is an optional feature,
      * available depending on Edition and License Type.
 	 * To know what features are enabled by your license, please see the License
 	 * tab of the Monitoring Dashboard (by default, available at /dashboard).
@@ -325,7 +327,9 @@ public abstract class MetadataProviderAdapter implements MetadataProvider {
      * the specified MPN device.
      * In this default implementation, the Metadata Adapter poses no restriction.
      *
-     * @general_edition_note Push Notifications is an optional feature,
+     * <br>
+     * <b>Edition Note:</b>
+     * <br>Push Notifications is an optional feature,
      * available depending on Edition and License Type.
 	 * To know what features are enabled by your license, please see the License
 	 * tab of the Monitoring Dashboard (by default, available at /dashboard).
@@ -346,7 +350,9 @@ public abstract class MetadataProviderAdapter implements MetadataProvider {
      * In this default implementation, the Metadata Adapter poses no
      * restriction.
      *
-     * @general_edition_note Push Notifications is an optional feature,
+     * <br>
+     * <b>Edition Note:</b>
+     * <br>Push Notifications is an optional feature,
      * available depending on Edition and License Type.
 	 * To know what features are enabled by your license, please see the License
 	 * tab of the Monitoring Dashboard (by default, available at /dashboard).
@@ -368,7 +374,9 @@ public abstract class MetadataProviderAdapter implements MetadataProvider {
      * In this default implementation, the Metadata Adapter poses no
      * restriction.
      *
-     * @general_edition_note Push Notifications is an optional feature,
+     * <br>
+     * <b>Edition Note:</b>
+     * <br>Push Notifications is an optional feature,
      * available depending on Edition and License Type.
 	 * To know what features are enabled by your license, please see the License
 	 * tab of the Monitoring Dashboard (by default, available at /dashboard).
