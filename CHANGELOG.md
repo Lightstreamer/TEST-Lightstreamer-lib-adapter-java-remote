@@ -7,7 +7,12 @@
 
 **New Features**
 
-- First public release.
+- Made the library available on the public Maven repository, at the following address:<br/>
+https://mvnrepository.com/artifact/com.lightstreamer/ls-adapter-remote<br/>
+Previous releases were included in Lightstreamer distribution packages, up to Lightstreamer version 7.1.1.
+
+- Made the library open source and available on GitHub at the following address:<br/>
+https://github.com/Lightstreamer/Lightstreamer-lib-adapter-java-remote
 
 **Improvements**
 
