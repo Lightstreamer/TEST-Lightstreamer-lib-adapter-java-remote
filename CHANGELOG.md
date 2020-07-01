@@ -16,8 +16,12 @@ https://github.com/Lightstreamer/Lightstreamer-lib-adapter-java-remote
 
 **Improvements**
 
-- Resorted to an external package for the log support.<br/>
-**COMPATIBILITY NOTE:** *Custom code using the LoggerProvider interface should be revised, based on the new documentation; see setLoggerProvider.*
+- Resorted to an external package for the log support. The new library is available at<br/>
+https://lightstreamer.com/repo/maven/com/lightstreamer/ls-log-adapter-java<br/>
+See the documentation at<br/>
+https://lightstreamer.com/repo/maven/com/lightstreamer/ls-log-adapter-java/1.0.2/ls-log-adapter-java-1.0.2-javadoc.jar%23/<br/>
+As a consequence, the signature of setLoggerProvider has changed and the whole "com.lightstreamer.adapters.remote.log" package has been removed.<br/>
+**COMPATIBILITY NOTE:** *Custom code using setLoggerProvider and the LoggerProvider interface should be revised, based on the new documentation.*
    
 - Added the null annotations (according to JSR 305) in the class files of public classes, to better support library use with Kotlin and any other language which leverages JSR 305.<br/>
 **COMPATIBILITY NOTE:** *Existing code written in Kotlin and similar languages may no longer compile and should be aligned with the new method signatures. No issues are expected for existing Java code.*
