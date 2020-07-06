@@ -42,7 +42,7 @@ Since the API is available from the Maven Central Repository, to setup your deve
 
 - [Examples](https://demos.lightstreamer.com/?p=lightstreamer&t=adapter&sadapterjava=remote)
 
-- [API Reference](https://www.lightstreamer.com/api/ls-java-adapter-remote/latest/)
+- [API Reference](https://www.lightstreamer.com/api/ls-adapter-remote/latest/)
 
 ## Other GitHub projects using this library
 
