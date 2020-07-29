@@ -22,7 +22,7 @@ In this specific project we provide the full sorce code that makes up the <b>Lig
 
 ## Compatibility
 
-The library is compatible with [Adapter Remoting Infrastructure](https://lightstreamer.com/docs/adapter_generic_base/ARI%20Protocol.pdf) since version 1.8.
+The library is compatible with [Adapter Remoting Infrastructure](https://www.lightstreamer.com/api/ls-generic-adapter/latest/ARI%20Protocol.pdf) since version 1.8.
 
 ## Using the API
 
