@@ -9,7 +9,7 @@ This SDK is designed for Java 8 and greater.
 
 ### The ARI Architecture
 
-Lightstreamer Server exposes native Java In-Process Adapter interfaces. The remote interfaces are added through the [Lightstreamer Adapter Remoting Infrastructure (**ARI**)](https://lightstreamer.com/docs/remoting_base/Adapter%20Remoting%20Infrastructure.pdf). 
+Lightstreamer Server exposes native Java In-Process Adapter interfaces. The remote interfaces are added through the [Lightstreamer Adapter Remoting Infrastructure (**ARI**)](https://lightstreamer.com/docs/ls-ARI/latest/Adapter%20Remoting%20Infrastructure.pdf). 
 
 ![architecture](architecture.png)
 
