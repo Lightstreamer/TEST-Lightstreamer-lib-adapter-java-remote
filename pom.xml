@@ -57,14 +57,6 @@
     <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
   </properties>
 
- <repositories>
-    <repository>
-      <id>lightstreamer</id>
-      <name>Lightstreamer repository</name>
-      <url>https://www.lightstreamer.com/repo/maven</url>
-    </repository>
-  </repositories>
-  
    <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -72,12 +64,12 @@
       <version>4.11</version>
       <scope>test</scope>
     </dependency>
-	<dependency>
+    <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
       <version>3.0.2</version>
     </dependency>
-	<dependency>
+    <dependency>
       <groupId>com.lightstreamer</groupId>
       <artifactId>ls-log-adapter-java</artifactId>
       <version>1.0.2</version>

@@ -1,5 +1,14 @@
 # Lightstreamer Changelog - SDK for Java Remote Adapters
 
+## [current state]
+
+**Improvements**
+
+- Modified the reference to the external package for the log support, which is now available at<br/>
+https://mvnrepository.com/artifact/com.lightstreamer/ls-log-adapter-java<br/>
+with documentation available at<br/>
+https://sdk.lightstreamer.com/ls-log-adapter-java/1.0.2/api/com/lightstreamer/log/LoggerProvider.html
+   
 ## [1.4.0] (09-06-2020)
 
 *Compatible with Adapter Remoting Infrastructure since 1.8.*  
