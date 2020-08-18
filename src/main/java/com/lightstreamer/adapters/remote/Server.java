@@ -265,16 +265,29 @@ public abstract class Server {
         _impl = null;
     }
 
-    /** 
-     * Sets the LoggerProvider instance that will be used by the classes of the library to obtain Logger instances
-     * used to propagate internal logging. Providing a new provider to the library permits to consume the log produced through
-     * custom Logger implementation. <BR>
-     * As soon as a new LoggerProvider is provided all the instances of Logger already in use in the
-     * library are discarded and substituted with instanced obtained from this new instance. If a null value is provided,
-     * the default consumers, that discard all the log, are enabled.
-     * 
-     * @param loggerProvider Will be responsible to provide Logger instances to the various classes of the library.
-    */
+    /**
+     * Static method that permits to configure the logging system used by the library. The logging system 
+     * must respect the 
+     * <a href="https://lightstreamer.com/api/ls-log-adapter-java/1.0.2/com/lightstreamer/log/LoggerProvider.html">LoggerProvider</a> 
+     * interface. A custom class can be used to wrap any third-party 
+     * Java logging system. <BR>
+     * If no logging system is specified, all the generated log is discarded. <BR>
+     * The following categories are available to be consumed:
+     * <ul>
+     *  <li>com.lightstreamer.adapters.remote.Server:<BR>
+     *  with various subloggers, logs xxxxxxxxxxxxxx;<BR>
+     *  at INFO level, adapter lifecycle events are logged;<BR>
+     *  at DEBUG level, request handling is logged.
+     *  </li>
+     *  <li>com.lightstreamer.adapters.remote.RequestReply:<BR>
+     *  with various subloggers, logs xxxxxxxxxxxxxx;<BR>
+     *  at INFO level, connection handling lifecycle events are logged;<BR>
+     *  at DEBUG level, inbound and outbound message details are logged.
+     * </ul>
+     *
+     * @param provider A <a href="https://lightstreamer.com/api/ls-log-adapter-java/1-0-2/com/lightstreamer/log/LoggerProvider.html">LoggerProvider</a>
+     * instance that will be used to generate log messages by the library classes.
+     */
     public static void setLoggerProvider(@Nullable LoggerProvider loggerProvider) {
         LogManager.setLoggerProvider(loggerProvider);
     }
