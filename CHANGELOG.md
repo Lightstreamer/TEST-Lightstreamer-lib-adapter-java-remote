@@ -8,6 +8,8 @@
 https://mvnrepository.com/artifact/com.lightstreamer/ls-log-adapter-java<br/>
 with documentation available at<br/>
 https://sdk.lightstreamer.com/ls-log-adapter-java/1.0.2/api/com/lightstreamer/log/LoggerProvider.html
+
+- Added missing references to the log resources and log details in the setLoggetProvider docs.
    
 ## [1.4.0] (09-06-2020)
 
