@@ -22,7 +22,7 @@ In this specific project we provide the full sorce code that makes up the <b>Lig
 
 ## Compatibility
 
-The library is compatible with [Adapter Remoting Infrastructure](https://www.lightstreamer.com/api/ls-generic-adapter/latest/ARI%20Protocol.pdf) since version 1.8.
+The library is compatible with Adapter Remoting Infrastructure since Server version 7.0.
 
 ## Using the API
 
@@ -43,6 +43,8 @@ Since the API is available from the Maven Central Repository, to setup your deve
 - [Examples](https://demos.lightstreamer.com/?p=lightstreamer&t=adapter&sadapterjava=remote)
 
 - [API Reference](https://www.lightstreamer.com/api/ls-adapter-remote/latest/)
+
+- [Adapter Remoting Infrastructure Network Protocol Specification](https://lightstreamer.com/api/ls-generic-adapter/latest/ARI%20Protocol.pdf)
 
 ## Other GitHub projects using this library
 

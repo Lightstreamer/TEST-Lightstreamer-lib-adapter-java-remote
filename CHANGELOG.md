@@ -2,6 +2,9 @@
 
 ## [current state]
 
+*Compatible with Adapter Remoting Infrastructure since Server version 7.0.*
+*Compatible with code developed with the previous version.*
+
 **Improvements**
 
 - Modified the reference to the external package for the log support, which is now available at<br/>
@@ -11,6 +14,8 @@ https://sdk.lightstreamer.com/ls-log-adapter-java/1.0.2/api/com/lightstreamer/lo
 
 - Added missing references to the log resources and log details in the setLoggetProvider docs.
    
+- Reformulated the compatibility constraint with respect to the Server version.
+
 ## [1.4.0] (09-06-2020)
 
 *Compatible with Adapter Remoting Infrastructure since 1.8.*  
