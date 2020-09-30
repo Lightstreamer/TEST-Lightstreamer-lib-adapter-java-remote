@@ -57,19 +57,19 @@
     <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
   </properties>
 
-   <dependencies>
+  <dependencies>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.11</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
+	<dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
       <version>3.0.2</version>
     </dependency>
-    <dependency>
+	<dependency>
       <groupId>com.lightstreamer</groupId>
       <artifactId>ls-log-adapter-java</artifactId>
       <version>1.0.2</version>
@@ -123,6 +123,7 @@
             <configuration>
               <doctitle>${project.name} ${project.version}</doctitle>
               <windowtitle>${project.artifactId} ${project.version}</windowtitle>
+			  <additionalJOption>--no-module-directories</additionalJOption>
             </configuration>
             <executions>
               <execution>
@@ -146,6 +147,30 @@
                 <phase>verify</phase>
                 <goals>
                   <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+	<profile>
+      <id>javadoc</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <doctitle>${project.name} ${project.version}</doctitle>
+              <windowtitle>${project.artifactId} ${project.version}</windowtitle>
+			  <additionalJOption>--no-module-directories</additionalJOption>
+            </configuration>
+            <executions>
+              <execution>
+                <id>javadoc</id>
+                <goals>
+                  <goal>jar</goal>
                 </goals>
               </execution>
             </executions>
