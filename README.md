@@ -40,7 +40,7 @@ Since the API is available from the Maven Central Repository, to setup your deve
 
 This project includes a simple full implementation of Remote Metadata Adapter in Java made available as sample for inspiration and/or extension.
 
-The LiteralBasedProvider is the Remote equivalent of the *LiteralBasedProvider* Metadata Adapter in [Lightstreamer Java In-Process Adapter SDK](https://github.com/Lightstreamer/Lightstreamer-lib-adapter-java-inprocess#literalbasedprovider-metadata-adapter).
+The [LiteralBasedProvider](https://github.com/Lightstreamer/Lightstreamer-lib-adapter-java-remote/tree/master/src/com/lightstreamer/adapters/remote/metadata) is the Remote equivalent of the *LiteralBasedProvider* Metadata Adapter in [Lightstreamer Java In-Process Adapter SDK](https://github.com/Lightstreamer/Lightstreamer-lib-adapter-java-inprocess#literalbasedprovider-metadata-adapter).
 It extends the [com.lightstreamer.adapters.remote.MetadataProviderAdapter](https://lightstreamer.com/api/ls-adapter-remote/latest/com/lightstreamer/adapters/remote/MetadataProviderAdapter.html) abstract class (which in turn implements the [com.lightstreamer.adapters.remote.MetadataProvider](https://lightstreamer.com/api/ls-adapter-remote/latest/com/lightstreamer/adapters/remote/MetadataProvider.html) interface).
 It is used in Lightstreamer examples and demos based on the Java Remote Adapter SDK, in combination with suitable Data Adapters and Clients.
 
