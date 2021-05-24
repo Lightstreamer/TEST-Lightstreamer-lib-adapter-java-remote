@@ -21,7 +21,7 @@ in the generated jar.
 
 ## [1.4.0] (09-06-2020)
 
-*Compatible with Adapter Remoting Infrastructure since 1.8.*  
+*Compatible with Adapter Remoting Infrastructure since 1.8 (corresponding to Server 7.0).*  
 *May not be compatible with code developed with the previous version; see compatibility notes below.*
 
 **New Features**
@@ -47,7 +47,7 @@ As a consequence, the signature of setLoggerProvider has changed and the whole "
 
 ## [1.3.1] (24-01-2020)
 
-*Compatible with Adapter Remoting Infrastructure since 1.8.*  
+*Compatible with Adapter Remoting Infrastructure since 1.8 (corresponding to Server 7.0).*  
 *Compatible with code developed with the previous version.*
 
 **New Features**
@@ -55,13 +55,13 @@ As a consequence, the signature of setLoggerProvider has changed and the whole "
 - Extended DataProviderServer and MetadataProviderServer (through the Server superclass) with settings of credentials, to be sent to the Proxy Adapter upon each connection.
 Credential check is an optional configuration of the Proxy Adapter; if not leveraged, the credentials will be ignored.
 
-- Added full support for ARI Protocol extensions introduced in Adapter Remoting Infrastructure version 1.9.<br/>
+- Added full support for ARI Protocol extensions introduced in Adapter Remoting Infrastructure version 1.9 (corresponding to Server 7.1).<br/>
 **COMPATIBILITY NOTE:** *If Adapter Remoting Infrastructure 1.8.x (corresponding to Server 7.0.x) is used and credentials to be sent to the Proxy Adapter are specified, they will obviously be ignored, but the Proxy Adapter will issue some log messages at WARN level on startup.*<br/>
 **COMPATIBILITY NOTE:** *Only in the very unlikely case that Adapter Remoting Infrastructure 1.8.x (corresponding to Server 7.0.x) were used and a custom remote parameter named "ARI.version" were defined in adapters.xml, this SDK would not be compatible with Lightstreamer Server, hence the Server should be upgraded (or a different parameter name should be used).*
 
 **Improvements**
 
-- Modified the handling of the keepalives when connected to a Proxy Adapter (i.e. Adapter Remoting Infrastructure) version 1.9 or higher: the preferred keepalive interval requested by the Proxy Adapter, when stricter than the configured one, is now obeyed (with a safety minimun of 1 second).
+- Modified the handling of the keepalives when connected to a Proxy Adapter (i.e. Adapter Remoting Infrastructure) version 1.9 (corresponding to Server 7.1) or higher: the preferred keepalive interval requested by the Proxy Adapter, when stricter than the configured one, is now obeyed (with a safety minimun of 1 second).
 Moreover, in that case, the default interval when not configured is now 10 seconds instead of 1.<br/>
 **COMPATIBILITY NOTE:** *If an existing installation relies on a very short keepalive interval to keep the connection alive due to intermediate nodes, the time should now be explicitly configured.*
 
@@ -81,7 +81,7 @@ These constructors will be removed in a future update, as the initializeOnStart 
 
 ## [1.2.0] (20-12-2017)
 
-*Compatible with Adapter Remoting Infrastructure since 1.8.*  
+*Compatible with Adapter Remoting Infrastructure since 1.8 (corresponding to Server 7.0).*  
 *May not be compatible with code developed with the previous version; see compatibility notes below.*
 
 **New Features**
@@ -110,7 +110,7 @@ These constructors will be removed in a future update, as the initializeOnStart 
 
 ## [1.1.2] (23-01-2017)
 
-*Compatible with Adapter Remoting Infrastructure since 1.7.*  
+*Compatible with Adapter Remoting Infrastructure since 1.7 (corresponding to Server 6.0).*  
 *Compatible with code developed with the previous version.*
 
 **Improvements**
@@ -123,7 +123,7 @@ These constructors will be removed in a future update, as the initializeOnStart 
 
 ## [1.1.1] (05-09-2016)
 
-*Compatible with Adapter Remoting Infrastructure since 1.7.*  
+*Compatible with Adapter Remoting Infrastructure since 1.7 (corresponding to Server 6.0).*  
 *Compatible with code developed with the previous version.*
 
 **Improvements**
@@ -132,7 +132,7 @@ These constructors will be removed in a future update, as the initializeOnStart 
 
 ## [1.1.0] (10-05-2016)
 
-*Compatible with Adapter Remoting Infrastructure since 1.7.*  
+*Compatible with Adapter Remoting Infrastructure since 1.7 (corresponding to Server 6.0).*  
 *May not be compatible with code developed with the previous version; see compatibility notes below.*
 
 **New Features**
@@ -158,7 +158,7 @@ Fixed the Javadocs for DataProvider and MetadataProvider interfaces on the way i
 
 ## [1.0.2] (16-07-2015)
 
-*Compatible with Adapter Remoting Infrastructure since 1.7.*  
+*Compatible with Adapter Remoting Infrastructure since 1.7 (corresponding to Server 6.0).*  
 *Compatible with code developed with the previous version.*
 
 **Improvements**
@@ -167,6 +167,6 @@ Fixed the Javadocs for DataProvider and MetadataProvider interfaces on the way i
 
 ## [1.0.1] (21-01-2015)
 
-*Compatible with Adapter Remoting Infrastructure since 1.7.*  
+*Compatible with Adapter Remoting Infrastructure since 1.7 (corresponding to Server 6.0).*  
 
 - Included in Lightstreamer distribution. The features are similar to the current SDK for .NET Adapters (version 1.9 build 1008).
