@@ -122,8 +122,7 @@
             <artifactId>maven-javadoc-plugin</artifactId>
             <configuration>
               <doctitle>${project.name} ${project.version}</doctitle>
-              <windowtitle>${project.artifactId} ${project.version}</windowtitle>
-			  <additionalJOption>--no-module-directories</additionalJOption>
+              <windowtitle>${project.artifactId} ${project.version}</windowtitle>  
             </configuration>
             <executions>
               <execution>

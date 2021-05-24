@@ -285,7 +285,7 @@ public abstract class Server {
      *  at DEBUG level, inbound and outbound message details are logged.
      * </ul>
      *
-     * @param provider A <a href="https://lightstreamer.com/api/ls-log-adapter-java/1-0-2/com/lightstreamer/log/LoggerProvider.html">LoggerProvider</a>
+     * @param loggerProvider A <a href="https://lightstreamer.com/api/ls-log-adapter-java/1-0-2/com/lightstreamer/log/LoggerProvider.html">LoggerProvider</a>
      * instance that will be used to generate log messages by the library classes.
      */
     public static void setLoggerProvider(@Nullable LoggerProvider loggerProvider) {
