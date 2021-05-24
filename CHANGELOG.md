@@ -17,7 +17,8 @@ in the generated jar.
 
 - Added missing references to the log resources and log details in the setLoggetProvider docs.
 
-- Reformulated the compatibility constraint with respect to the Server version.
+- Reformulated the compatibility constraint with respect to the Server version,
+  instead of the Adapter Remoting Infrastructure version.
 
 ## [1.4.0] (09-06-2020)
 
