@@ -126,7 +126,7 @@ class NotifySender {
  
             if (reply == null || reply == KEEPALIVE_PILL) {
                 // the timeout (real or simulated) has fired
-                reply = RemotingProtocol.METHOD_KEEPALIVE;
+                reply = BaseProtocol.METHOD_KEEPALIVE;
                 if (getProperKeepaliveLogger().isDebugEnabled()) {
                     getProperKeepaliveLogger().debug(getProperType() + " line: " + reply);
                 }

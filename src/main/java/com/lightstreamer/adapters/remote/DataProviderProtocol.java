@@ -19,7 +19,7 @@ import java.util.NoSuchElementException;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 
-class DataProviderProtocol extends RemotingProtocol {
+class DataProviderProtocol extends BaseProtocol {
 
     public static final char SUBTYPE_DATAPROVIDER_EXCEPTION = 'D';
     public static final char SUBTYPE_FAILURE_EXCEPTION = 'F';
@@ -142,84 +142,6 @@ class DataProviderProtocol extends RemotingProtocol {
         sb.append(encodeString(exception.getMessage()));
 
         return sb.toString();
-    }
-
-    // ////////////////////////////////////////////////////////////////////////
-    // REMOTE CREDENTIALS
-
-    public static String writeRemoteCredentials(Map<String,String> arguments) throws RemotingException {
-        // protocol version 1.8.2 and above
-        StringBuilder sb = new StringBuilder();
-
-        sb.append(METHOD_REMOTE_CREDENTIALS);
-
-        Iterator<Map.Entry<String,String>> iter = arguments.entrySet().iterator();
-        while (iter.hasNext()) {
-            Map.Entry<String,String> entry = iter.next();
-            sb.append(SEP);
-            sb.append(TYPE_STRING);
-            sb.append(SEP);
-            sb.append(encodeString(entry.getKey()));
-            sb.append(SEP);
-            sb.append(TYPE_STRING);
-            sb.append(SEP);
-            sb.append(encodeString(entry.getValue()));
-        }
-
-        return sb.toString();
-    }
-
-    // ////////////////////////////////////////////////////////////////////////
-    // CLOSE
-
-    public static Map<String,String> readClose(String request) throws RemotingException {
-        StringTokenizer tokenizer = new StringTokenizer(request, "" + SEP);
-        String msg = null;
-        RemotingException re2 = null;
-        
-        Map<String,String> parameters = new HashMap<String,String>();
-
-        String typ = null;
-        while (tokenizer.hasMoreTokens()) {
-            String headerName = "";
-            String headerValue = "";
-
-            typ = tokenizer.nextToken();
-
-            String val; // declared here to avoid JVM bug JDK-8067429
-            switch (typ.toCharArray()[0]) {
-
-                case TYPE_STRING:
-                    val = tokenizer.nextToken();
-                    headerName = decodeString(val);
-                    break;
-
-                default:
-                    msg = "Unknown type '" + typ + "' found while parsing a " + METHOD_CLOSE + " request";
-            }
-
-            typ = tokenizer.nextToken();
-
-            switch (typ.toCharArray()[0]) {
-
-                case TYPE_STRING:
-                    val = tokenizer.nextToken();
-                    headerValue = decodeString(val);
-                    break;
-
-                default:
-                    msg = "Unknown type '" + typ + "' found while parsing a " + METHOD_CLOSE + " request";
-            }
-            
-            if (msg != null) {
-                re2 = new RemotingException(msg);
-                throw re2;
-            } else {
-                parameters.put(headerName, headerValue);
-            }
-        }
-
-        return parameters;
     }
 
     // ////////////////////////////////////////////////////////////////////////
