@@ -182,6 +182,59 @@ class MetadataProviderProtocol extends RemotingProtocol {
         return sb.toString();
     }
 
+    // ////////////////////////////////////////////////////////////////////////
+    // CLOSE
+
+    public static Map<String,String> readClose(String request) throws RemotingException {
+        StringTokenizer tokenizer = new StringTokenizer(request, "" + SEP);
+        String msg = null;
+        RemotingException re2 = null;
+        
+        Map<String,String> parameters = new HashMap<String,String>();
+
+        String typ = null;
+        while (tokenizer.hasMoreTokens()) {
+            String headerName = "";
+            String headerValue = "";
+
+            typ = tokenizer.nextToken();
+
+            String val; // declared here to avoid JVM bug JDK-8067429
+            switch (typ.toCharArray()[0]) {
+
+                case TYPE_STRING:
+                    val = tokenizer.nextToken();
+                    headerName = decodeString(val);
+                    break;
+
+                default:
+                    msg = "Unknown type '" + typ + "' found while parsing a " + METHOD_CLOSE + " request";
+            }
+
+            typ = tokenizer.nextToken();
+
+            switch (typ.toCharArray()[0]) {
+
+                case TYPE_STRING:
+                    val = tokenizer.nextToken();
+                    headerValue = decodeString(val);
+                    break;
+
+                default:
+                    msg = "Unknown type '" + typ + "' found while parsing a " + METHOD_CLOSE + " request";
+            }
+            
+            if (msg != null) {
+                re2 = new RemotingException(msg);
+                throw re2;
+            } else {
+                parameters.put(headerName, headerValue);
+            }
+        }
+
+        return parameters;
+    }
+
     ///////////////////////////////////////////////////////////////////////////
     // GET ITEM DATA
 

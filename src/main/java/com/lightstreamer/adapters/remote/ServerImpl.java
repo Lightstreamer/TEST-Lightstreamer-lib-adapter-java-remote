@@ -43,6 +43,7 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
     public static final String KEEPALIVE_HINT_PARAM = "keepalive_hint.millis";
     public static final String USER_PARAM = "user";
     public static final String PASSWORD_PARAM = "password";
+    public static final String OUTCOME_PARAM = "enableClosePacket";
 
     public static final int MIN_KEEPALIVE_MILLIS = 1000;
         // protection limit; it might be made configurable;
@@ -139,40 +140,51 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
     protected String getSupportedVersion(String proxyVersion) throws VersionException {
         if (proxyVersion == null) {
             // protocol version 1.8.0 or earlier;
-            // we cannot support a lower version;
             // if we supported a version higher than 1.8.x, we should fail here;
-            // we currently support 1.8.x
-            // this could still be higher and incompatible with the proxy version,
-            // but we cannot know that and fail;
-            // version advertisement not available here
-            return null;
+            // but we currently support 1.8.x;
+            // however, we don't support any version lower than 1.8.0,
+            // so we could still be incompatible with the proxy version,
+            // but we cannot distinguish the case and fail
+            return null;    // version advertisement not available here
         } else {
             // protocol version specified in proxyVersion (must be 1.8.2 or later);
             // if we supported a lower version, we could advertise it
             // and hope that the proxy supports it as well;
             // if we supported a higher version, we could fail here,
             // but we can still advertise it and let the proxy refuse
-            if (proxyVersion.equals("1.8.1")) {
+            if (proxyVersion.equals("1.8.0")) {
+                throw new VersionException("Unexpected protocol version number: " + proxyVersion);
+                // note: in principle, we should also refuse for inconsistency
+                // all protocols lower than 1.8.0 received through a remote init
+            } else if (proxyVersion.equals("1.8.1")) {
                 // temporary version that was used internally but never published
                 throw new VersionException("Unsupported reserved protocol version number: " + proxyVersion);
+            } else if (proxyVersion.equals("1.8.2")) {
+                return "1.8.2";
+            } else {
+                return "1.8.3";
             }
-            return "1.8.2";
         }
     }
     
-    private Map<String, String> getCredentialParams() {
-        if (_remoteUser != null && _remotePassword != null) {
+    protected Map<String, String> getCredentialParams(boolean requestOutcome) {
+        if (_remoteUser != null || _remotePassword != null || requestOutcome) {
             Map<String, String> _proxyParams = new HashMap<String, String>();
-            _proxyParams.put(USER_PARAM, _remoteUser);
-            _proxyParams.put(PASSWORD_PARAM, _remotePassword);
+            if (_remoteUser != null) {
+                _proxyParams.put(USER_PARAM, _remoteUser);
+            }
+            if (_remotePassword != null) {
+                _proxyParams.put(PASSWORD_PARAM, _remotePassword);
+            }
+            if (requestOutcome) {
+                _proxyParams.put(OUTCOME_PARAM, "true");
+            }
             return _proxyParams;
         } else {
             return null;
         }
     }
 
-    protected abstract void sendRemoteCredentials(Map<String,String> credentials) throws RemotingException;
-    
     private void changeKeepalive(int keepaliveTime) {
         NotifySender currNotifySender;
         RequestReceiver currRequestReceiver;
@@ -283,11 +295,6 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
             currNotifySender.start();
         }
         currRequestReceiver.start();
-
-        Map<String, String> credentials = getCredentialParams();
-        if (credentials != null) {
-            sendRemoteCredentials(credentials);
-        }
     }
 
     public final void stop() {

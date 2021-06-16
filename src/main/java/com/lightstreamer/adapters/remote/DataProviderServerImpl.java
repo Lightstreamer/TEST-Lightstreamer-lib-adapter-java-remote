@@ -25,6 +25,7 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
     private static Logger _log = LogManager.getLogger("com.lightstreamer.adapters.remote.Server.DataProviderServer");
 
     private boolean _initExpected;
+    private boolean _closeExpected;
     private boolean _initializeOnStart;
     private DataProvider _adapter;
     private Map<String,String> _adapterParams;
@@ -35,6 +36,8 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
         _initializeOnStart = initializeOnStart;
             // set to true to force the old behavior (for an old Proxy Adapter)
         _initExpected = true;
+        _closeExpected = true;
+            // we start with the current version of the protocol, which does not conflict with earlier versions
         _adapter = null;
         _adapterParams = new HashMap<String,String>();
         _adapterConfig = null;
@@ -72,6 +75,11 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
         }
 
         super.start();
+
+        Map<String, String> credentials = getCredentialParams(_closeExpected);
+        if (credentials != null) {
+            sendRemoteCredentials(credentials);
+        }
 
         synchronized (this) {
             if (_notifySender == null) {
@@ -200,7 +208,6 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
         }
     }
     
-    @Override
     public void sendRemoteCredentials(Map<String,String> credentials) throws RemotingException {
         String notify = DataProviderProtocol.writeRemoteCredentials(credentials);
         NotifySender currNotifySender;
@@ -228,6 +235,20 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
         String method = request.substring(0, sep);
 
         try {
+            if (method.equals(DataProviderProtocol.METHOD_CLOSE) && _closeExpected) {
+                // this can also precede the init request
+                if (! requestId.equals(DataProviderProtocol.CLOSE_REQUEST_ID)) {
+                    throw new RemotingException("Unexpected id found while parsing a " + DataProviderProtocol.METHOD_CLOSE + " request");
+                }
+                final Map<String, String> closeParams = DataProviderProtocol.readClose(request.substring(sep + 1));
+                String closeReason = closeParams.get(DataProviderProtocol.KEY_CLOSE_REASON);
+                if (closeReason != null) {
+                    throw new RemotingException("Close requested by the counterpart with reason: " + closeReason);
+                } else {
+                    throw new RemotingException("Close requested by the counterpart");
+                }
+            }
+
             boolean isInitRequest = method.equals(DataProviderProtocol.METHOD_DATA_INIT);
             if (isInitRequest && !_initExpected) {
                 throw new RemotingException("Unexpected late " + DataProviderProtocol.METHOD_DATA_INIT + " request");
@@ -252,7 +273,20 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
                         String advertisedVersion = getSupportedVersion(proxyVersion);
                             // this may prevent the initialization
                         boolean is180 = (advertisedVersion == null);
+                        boolean is182 = (advertisedVersion != null && advertisedVersion.equals("1.8.2"));
 
+                        if (is180 || is182) {
+                            if (_closeExpected) {
+                                // WARNING: these versions don't provide for the CLOSE message,
+                                // but we previously asked for the CLOSE message with the RAC message;
+                                // hence we should no longer expect a CLOSE message, but only after
+                                // the client receives this answer, which confirms the protocol;
+                                // however, assuming that the Proxy Adapter only supports these versions,
+                                // we expect that it has ignored our request in the RAC message,
+                                // hence we can already stop expecting a CLOSE message.
+                            }
+                            _closeExpected = false; 
+                        }
                         if (! is180) {
                             // protocol version 1.8.2 and above
                             keepaliveHint = initParams.get(KEEPALIVE_HINT_PARAM);
@@ -292,7 +326,20 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
                         String proxyVersion = initParams.get(PROTOCOL_VERSION_PARAM);
                         String advertisedVersion = getSupportedVersion(proxyVersion);
                         boolean is180 = (advertisedVersion == null);
+                        boolean is182 = (advertisedVersion != null && advertisedVersion.equals("1.8.2"));
 
+                        if (is180 || is182) {
+                            if (_closeExpected) {
+                                // WARNING: these versions don't provide for the CLOSE message,
+                                // but we previously asked for the CLOSE message with the RAC message;
+                                // hence we should no longer expect a CLOSE message, but only after
+                                // the client receives this answer, which confirms the protocol;
+                                // however, assuming that the Proxy Adapter only supports these versions,
+                                // we expect that it has ignored our request in the RAC message,
+                                // hence we can already stop expecting a CLOSE message.
+                            }
+                            _closeExpected = false; 
+                        }
                         if (! is180) {
                             // protocol version 1.8.2 and above
                             keepaliveHint = initParams.get(KEEPALIVE_HINT_PARAM);

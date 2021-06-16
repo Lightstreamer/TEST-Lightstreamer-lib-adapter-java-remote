@@ -37,8 +37,12 @@ abstract class RemotingProtocol {
     
     public static final String METHOD_KEEPALIVE= "KEEPALIVE";
     public static final String METHOD_REMOTE_CREDENTIALS= "RAC";
+    public static final String METHOD_CLOSE= "CLOSE";
+
+    public static final String KEY_CLOSE_REASON = "reason";
 
     public static final String AUTH_REQUEST_ID = "1";
+    public static final String CLOSE_REQUEST_ID = "0";
 
     ///////////////////////////////////////////////////////////////////////////
     // base encoding/decoding methods
