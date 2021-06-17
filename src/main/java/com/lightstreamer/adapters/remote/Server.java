@@ -27,8 +27,12 @@ import com.lightstreamer.log.LoggerProvider;
  * A generic Remote Server object, which can run a Remote Data or Metadata Adapter
  * and connect it to the Proxy Adapter running on Lightstreamer Server. <BR>
  * The object should be provided with a suitable Adapter instance
- * and with suitable initialization parameters and established connections,
- * then activated through {@link #start} and finally disposed through {@link #close}.
+ * and with suitable local initialization parameters and established
+ * connections, then activated through {@link #start}
+ * and finally disposed through {@link #close}.
+ * If any preliminary initialization on the supplied Adapter
+ * implementation object has to be performed, it should be done through
+ * a custom, dedicated method before invoking {@link #start}.
  * Further reuse of the same instance is not supported.<BR>
  * The Remote Server will take care of sending keepalive packets on the connections
  * when needed. The interval can be configured through the custom
@@ -220,29 +224,23 @@ public abstract class Server {
 
     /** 
      * Starts the communication between the Remote Adapter and the Proxy Adapter
-     * through the supplied streams. If requested by the initializeOnStart flag
-     * in the instance constructor, the Remote Adapter is initialized immediately.
+     * through the supplied streams.
      * Then, requests issued by the Proxy Adapter are received and forwarded
-     * to the Remote Adapter. If the Remote Adapter is not initialized
-     * immediately, initialization will be triggered by the Proxy Adapter
+     * to the Remote Adapter. Note that the Remote Adapter initialization
+     * is not done now, but it will be triggered by the Proxy Adapter
      * and any initialization error will be just notified to the Proxy Adapter.
-     * @exception RemotingException An error occurred in the initialization
-     * phase. The adapter was not started.
-     * @exception DataProviderException An error occurred in the initialization
-     * phase. The adapter was not started. Only possible when the Adapter is
-     * initialized immediately. 
-     * @exception MetadataProviderException An error occurred in the initialization
-     * phase. The adapter was not started. Only possible when the Adapter is
-     * initialized immediately.
+     * 
+     * @exception RemotingException An error occurred while setting up the
+     * communication channels. The adapter was not started.
      */
-    public final void start() throws RemotingException, DataProviderException, MetadataProviderException {
+    public final void start() throws RemotingException {
         if (startedOnce) {
             throw new IllegalStateException("Reuse of Server object forbidden");
         }
         startedOnce = true;
         try {
             _impl.start();
-        } catch (RemotingException | DataProviderException | MetadataProviderException e) {
+        } catch (RemotingException e) {
             _impl.stop();
             throw e;
         }

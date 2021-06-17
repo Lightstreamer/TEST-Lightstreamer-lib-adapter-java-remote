@@ -26,15 +26,12 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
 
     private boolean _initExpected;
     private boolean _closeExpected;
-    private boolean _initializeOnStart;
     private DataProvider _adapter;
     private Map<String,String> _adapterParams;
     private String _adapterConfig;
     private SubscriptionHelper _helper;
 
-    public DataProviderServerImpl(boolean initializeOnStart) {
-        _initializeOnStart = initializeOnStart;
-            // set to true to force the old behavior (for an old Proxy Adapter)
+    public DataProviderServerImpl() {
         _initExpected = true;
         _closeExpected = true;
             // we start with the current version of the protocol, which does not conflict with earlier versions
@@ -66,14 +63,8 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
     }
     
     @Override
-    public void start() throws DataProviderException, RemotingException, MetadataProviderException {
+    public void start() throws RemotingException {
         _log.info("Managing Data Adapter " + super.getName() + " with " + _helper.getPoolType());
-        if (_initializeOnStart) {
-            // requires to start already initialized (old behavior)
-            _adapter.init(_adapterParams, _adapterConfig);
-            _adapter.setListener(this);
-        }
-
         super.start();
 
         Map<String, String> credentials = getCredentialParams(_closeExpected);
@@ -253,11 +244,7 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
             if (isInitRequest && !_initExpected) {
                 throw new RemotingException("Unexpected late " + DataProviderProtocol.METHOD_DATA_INIT + " request");
             } else if (!isInitRequest && _initExpected) {
-                if (!_initializeOnStart) {
-                    throw new RemotingException("Unexpected request " + request + " while waiting for a " + DataProviderProtocol.METHOD_DATA_INIT + " request");
-                } else {
-                    _initExpected = false; // init request not received, but now no longer possible
-                }
+                throw new RemotingException("Unexpected request " + request + " while waiting for a " + DataProviderProtocol.METHOD_DATA_INIT + " request");
             }
 
             if (isInitRequest) {
@@ -265,102 +252,57 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
                 _initExpected = false;
                 String keepaliveHint = null;
                 String reply;
-                // NOTE: compacting the two branches below is more complicated than it seems
-                if (!_initializeOnStart) {
-                    Map<String,String> initParams = DataProviderProtocol.readInit(request.substring(sep + 1));
-                    try {
-                        String proxyVersion = initParams.get(PROTOCOL_VERSION_PARAM);
-                        String advertisedVersion = getSupportedVersion(proxyVersion);
-                            // this may prevent the initialization
-                        boolean is180 = (advertisedVersion == null);
-                        boolean is182 = (advertisedVersion != null && advertisedVersion.equals("1.8.2"));
+                Map<String,String> initParams = DataProviderProtocol.readInit(request.substring(sep + 1));
+                try {
+                    String proxyVersion = initParams.get(PROTOCOL_VERSION_PARAM);
+                    String advertisedVersion = getSupportedVersion(proxyVersion);
+                        // this may prevent the initialization
+                    boolean is180 = (advertisedVersion == null);
+                    boolean is182 = (advertisedVersion != null && advertisedVersion.equals("1.8.2"));
 
-                        if (is180 || is182) {
-                            if (_closeExpected) {
-                                // WARNING: these versions don't provide for the CLOSE message,
-                                // but we previously asked for the CLOSE message with the RAC message;
-                                // hence we should no longer expect a CLOSE message, but only after
-                                // the client receives this answer, which confirms the protocol;
-                                // however, assuming that the Proxy Adapter only supports these versions,
-                                // we expect that it has ignored our request in the RAC message,
-                                // hence we can already stop expecting a CLOSE message.
-                            }
-                            _closeExpected = false; 
+                    if (is180 || is182) {
+                        if (_closeExpected) {
+                            // WARNING: these versions don't provide for the CLOSE message,
+                            // but we previously asked for the CLOSE message with the RAC message;
+                            // hence we should no longer expect a CLOSE message, but only after
+                            // the client receives this answer, which confirms the protocol;
+                            // however, assuming that the Proxy Adapter only supports these versions,
+                            // we expect that it has ignored our request in the RAC message,
+                            // hence we can already stop expecting a CLOSE message.
                         }
-                        if (! is180) {
-                            // protocol version 1.8.2 and above
-                            keepaliveHint = initParams.get(KEEPALIVE_HINT_PARAM);
-                            if (keepaliveHint == null) {
-                                keepaliveHint = "0";
-                            }
-                            initParams.remove(PROTOCOL_VERSION_PARAM);
-                            initParams.remove(KEEPALIVE_HINT_PARAM);
-                            // the version and keepalive hint are internal parameters, not to be sent to the custom Adapter
+                        _closeExpected = false; 
+                    }
+                    if (! is180) {
+                        // protocol version 1.8.2 and above
+                        keepaliveHint = initParams.get(KEEPALIVE_HINT_PARAM);
+                        if (keepaliveHint == null) {
+                            keepaliveHint = "0";
                         }
-
-                        Iterator<String> paramIter = _adapterParams.keySet().iterator();
-                        while (paramIter.hasNext()) {
-                            String param = paramIter.next();
-                            initParams.put(param, _adapterParams.get(param));
-                        }
-                        _adapter.init(initParams, _adapterConfig);
-                        _adapter.setListener(this);
-
-                        if (! is180) {
-                            // protocol version 1.8.2 and above
-                            Map<String,String> _proxyParams = new HashMap<>();
-                            _proxyParams.put(PROTOCOL_VERSION_PARAM, advertisedVersion);
-                            reply = DataProviderProtocol.writeInit(_proxyParams);
-                        } else {
-                            // protocol version 1.8.0
-                            reply = DataProviderProtocol.writeInit((Map<String, String>) null);
-                        }
-                    } catch (DataProviderException | VersionException | Error | RuntimeException e) {
-                        reply = DataProviderProtocol.writeInit(e);
+                        initParams.remove(PROTOCOL_VERSION_PARAM);
+                        initParams.remove(KEEPALIVE_HINT_PARAM);
+                        // the version and keepalive hint are internal parameters, not to be sent to the custom Adapter
                     }
 
-                } else {
-                    _log.warn("Received Data Adapter initialization request; parameters ignored");
-                    Map<String,String> initParams = DataProviderProtocol.readInit(request.substring(sep + 1));
-                    try {
-                        String proxyVersion = initParams.get(PROTOCOL_VERSION_PARAM);
-                        String advertisedVersion = getSupportedVersion(proxyVersion);
-                        boolean is180 = (advertisedVersion == null);
-                        boolean is182 = (advertisedVersion != null && advertisedVersion.equals("1.8.2"));
-
-                        if (is180 || is182) {
-                            if (_closeExpected) {
-                                // WARNING: these versions don't provide for the CLOSE message,
-                                // but we previously asked for the CLOSE message with the RAC message;
-                                // hence we should no longer expect a CLOSE message, but only after
-                                // the client receives this answer, which confirms the protocol;
-                                // however, assuming that the Proxy Adapter only supports these versions,
-                                // we expect that it has ignored our request in the RAC message,
-                                // hence we can already stop expecting a CLOSE message.
-                            }
-                            _closeExpected = false; 
-                        }
-                        if (! is180) {
-                            // protocol version 1.8.2 and above
-                            keepaliveHint = initParams.get(KEEPALIVE_HINT_PARAM);
-                            if (keepaliveHint == null) {
-                                keepaliveHint = "0";
-                            }
-                            Map<String,String> _proxyParams = new HashMap<>();
-                            _proxyParams.put(PROTOCOL_VERSION_PARAM, advertisedVersion);
-                            reply = DataProviderProtocol.writeInit(_proxyParams);
-                        } else {
-                            // protocol version 1.8.0
-                            reply = DataProviderProtocol.writeInit((Map<String, String>) null);
-                        }
-                    } catch (VersionException | Error | RuntimeException e) {
-                        reply = DataProviderProtocol.writeInit(e);
-                        // here the Remote Adapter is already initialized
-                        // and we should notify custom code of the issue;
-                        // but now the Proxy Adapter will terminate the connection and we lean on that
+                    Iterator<String> paramIter = _adapterParams.keySet().iterator();
+                    while (paramIter.hasNext()) {
+                        String param = paramIter.next();
+                        initParams.put(param, _adapterParams.get(param));
                     }
+                    _adapter.init(initParams, _adapterConfig);
+                    _adapter.setListener(this);
+
+                    if (! is180) {
+                        // protocol version 1.8.2 and above
+                        Map<String,String> _proxyParams = new HashMap<>();
+                        _proxyParams.put(PROTOCOL_VERSION_PARAM, advertisedVersion);
+                        reply = DataProviderProtocol.writeInit(_proxyParams);
+                    } else {
+                        // protocol version 1.8.0
+                        reply = DataProviderProtocol.writeInit((Map<String, String>) null);
+                    }
+                } catch (DataProviderException | VersionException | Error | RuntimeException e) {
+                    reply = DataProviderProtocol.writeInit(e);
                 }
-                
                 useKeepaliveHint(keepaliveHint);
                 sendReply(requestId, reply);
 

@@ -19,14 +19,16 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 
-
-
 /** 
  * A Remote Server object which can run a Remote Metadata Adapter and connect it
  * to a Proxy Metadata Adapter running on Lightstreamer Server. <BR>
  * The object should be provided with a MetadataProvider instance
- * and with suitable initialization parameters and established connections, 
- * then activated through {@link Server#start} and finally disposed through {@link Server#close}.
+ * and with suitable local initialization parameters and established
+ * connections, then activated through {@link Server#start}
+ * and finally disposed through {@link Server#close}.
+ * If any preliminary initialization on the supplied MetadataProvider
+ * implementation object has to be performed, it should be done through
+ * a custom, dedicated method before invoking {@link Server#start}.
  * Further reuse of the same instance is not supported. <BR>
  * By default, the invocations to the Metadata Adapter methods will be
  * done in an unlimited thread pool. A thread pool maximum size can be
@@ -53,40 +55,7 @@ public class MetadataProviderServer extends Server {
      * in system properties related with Metadata Adapter processing.
      */
     public MetadataProviderServer() {
-        _impl = new MetadataProviderServerImpl(false);
-        init(_impl);
-    }
-
-    /** 
-     * Creates an empty server still to be configured and started.
-     * 
-     * @param initializeOnStart If true, the init method of the
-     * Remote Adapter will be invoked immediately rather than upon
-     * a Proxy Adapter request. The Proxy Adapter request will then just
-     * receive a successful answer. This can shorten the connection phase,
-     * which will start only after the return of init; on the other hand,
-     * any initialization parameters supplied by the Proxy Adapter will
-     * not be available.
-     * 
-     * @throws IllegalArgumentException in case something wrong is supplied
-     * in system properties related with Metadata Adapter processing.
-     * 
-     * @deprecated This constructor is deprecated, because the setting
-     * of initializeOnStart as true is going to be no longer supported.
-     * Use the other constructor, which implies initializeOnStart as false.
-     * As a consequence of this replacement, the init method of the
-     * MetadataProvider implementation object would be invoked only after
-     * the connection and it would receive additional parameters sent by
-     * the Proxy Adapter.
-     * If any initialization stuff on the MetadataProvider implementation
-     * object has to be performed earlier, it should be done through
-     * a dedicated method before invoking start. As another consequence,
-     * the start method would no longer throw a MetadataAdapterException;
-     * any related catch block could safely assert false.
-     */
-    @Deprecated
-    public MetadataProviderServer(boolean initializeOnStart) {
-        _impl = new MetadataProviderServerImpl(initializeOnStart);
+        _impl = new MetadataProviderServerImpl();
         init(_impl);
     }
 
@@ -112,7 +81,7 @@ public class MetadataProviderServer extends Server {
      * of the Remote Metadata Adapter, to supply optional parameters. <BR>
      * 
      * The default value is an empty HashMap.
-     * 
+     *
      * @param params the Map to be passed to the init method
      * of the Remote Metadata Adapter
      * 

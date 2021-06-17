@@ -265,7 +265,7 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
         }
     }
 
-    public void start() throws DataProviderException, RemotingException, MetadataProviderException {
+    public void start() throws RemotingException {
         int keepaliveMillis;
         if (_configuredKeepaliveMillis == null) {
             keepaliveMillis = DEFAULT_KEEPALIVE_MILLIS;

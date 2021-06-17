@@ -30,7 +30,6 @@ class MetadataProviderServerImpl extends ServerImpl {
 
     private boolean _initExpected;
     private boolean _closeExpected;
-    private boolean _initializeOnStart;
     private MetadataProvider _adapter;
     private Map<String,String> _adapterParams;
     private String _adapterConfig;
@@ -38,9 +37,7 @@ class MetadataProviderServerImpl extends ServerImpl {
     private final String _poolType;
     private final ExecutorService _executor;
             
-    public MetadataProviderServerImpl(boolean initializeOnStart) {
-        _initializeOnStart = initializeOnStart;
-            // set to true to force the old behavior (for an old Proxy Adapter)
+    public MetadataProviderServerImpl() {
         _initExpected = true;
         _closeExpected = true;
             // we start with the current version of the protocol, which does not conflict with earlier versions
@@ -91,13 +88,8 @@ class MetadataProviderServerImpl extends ServerImpl {
     }
 
     @Override
-    public void start() throws MetadataProviderException, DataProviderException, RemotingException {
+    public void start() throws RemotingException {
         _log.info("Managing Metadata Adapter " + super.getName() + " with " + _poolType);
-        if (_initializeOnStart) {
-            // requires to start already initialized (old behavior)
-            _adapter.init(_adapterParams, _adapterConfig);
-        }
-
         super.start();
 
         Map<String, String> credentials = getCredentialParams(_closeExpected);
@@ -146,113 +138,64 @@ class MetadataProviderServerImpl extends ServerImpl {
             if (isInitRequest && !_initExpected) {
                 throw new RemotingException("Unexpected late " + MetadataProviderProtocol.METHOD_METADATA_INIT + " request");
             } else if (!isInitRequest && _initExpected) {
-                if (!_initializeOnStart) {
-                    throw new RemotingException("Unexpected request " + request + " while waiting for a " + MetadataProviderProtocol.METHOD_METADATA_INIT + " request");
-                } else {
-                    _initExpected = false; // init request not received, but now no longer possible
-                }
+                throw new RemotingException("Unexpected request " + request + " while waiting for a " + MetadataProviderProtocol.METHOD_METADATA_INIT + " request");
             }
 
             if (isInitRequest) {
                 _log.debug("Processing request: " + requestId);
-                String reply;
-                String keepaliveHint = null;
                 _initExpected = false;
-                // NOTE: compacting the two branches below is more complicated than it seems
-                if (!_initializeOnStart) {
-                    Map<String,String> initParams = MetadataProviderProtocol.readInit(request.substring(sep + 1));
-                    try {
-                        String proxyVersion = initParams.get(PROTOCOL_VERSION_PARAM);
-                        String advertisedVersion = getSupportedVersion(proxyVersion);
-                            // this may prevent the initialization
-                        boolean is180 = (advertisedVersion == null);
-                        boolean is182 = (advertisedVersion != null && advertisedVersion.equals("1.8.2"));
-                        
-                        if (is180 || is182) {
-                            if (_closeExpected) {
-                                // WARNING: these versions don't provide for the CLOSE message,
-                                // but we previously asked for the CLOSE message with the RAC message;
-                                // hence we should no longer expect a CLOSE message, but only after
-                                // the client receives this answer, which confirms the protocol;
-                                // however, assuming that the Proxy Adapter only supports these versions,
-                                // we expect that it has ignored our request in the RAC message,
-                                // hence we can already stop expecting a CLOSE message.
-                            }
-                            _closeExpected = false; 
+                String keepaliveHint = null;
+                String reply;
+                Map<String,String> initParams = MetadataProviderProtocol.readInit(request.substring(sep + 1));
+                try {
+                    String proxyVersion = initParams.get(PROTOCOL_VERSION_PARAM);
+                    String advertisedVersion = getSupportedVersion(proxyVersion);
+                        // this may prevent the initialization
+                    boolean is180 = (advertisedVersion == null);
+                    boolean is182 = (advertisedVersion != null && advertisedVersion.equals("1.8.2"));
+                    
+                    if (is180 || is182) {
+                        if (_closeExpected) {
+                            // WARNING: these versions don't provide for the CLOSE message,
+                            // but we previously asked for the CLOSE message with the RAC message;
+                            // hence we should no longer expect a CLOSE message, but only after
+                            // the client receives this answer, which confirms the protocol;
+                            // however, assuming that the Proxy Adapter only supports these versions,
+                            // we expect that it has ignored our request in the RAC message,
+                            // hence we can already stop expecting a CLOSE message.
                         }
-                        if (! is180) {
-                            // protocol version 1.8.2 and above
-                            keepaliveHint = initParams.get(KEEPALIVE_HINT_PARAM);
-                            if (keepaliveHint == null) {
-                                keepaliveHint = "0";
-                            }
-                            initParams.remove(PROTOCOL_VERSION_PARAM);
-                            initParams.remove(KEEPALIVE_HINT_PARAM);
-                            // the version and keepalive hint are internal parameters, not to be sent to the custom Adapter
+                        _closeExpected = false; 
+                    }
+                    if (! is180) {
+                        // protocol version 1.8.2 and above
+                        keepaliveHint = initParams.get(KEEPALIVE_HINT_PARAM);
+                        if (keepaliveHint == null) {
+                            keepaliveHint = "0";
                         }
-
-                        Iterator<String> paramIter = _adapterParams.keySet().iterator();
-                        while (paramIter.hasNext()) {
-                            String param = paramIter.next();
-                            initParams.put(param, _adapterParams.get(param));
-                        }
-                        _adapter.init(initParams, _adapterConfig);
-
-                        if (! is180) {
-                            // protocol version 1.8.2 and above
-                            Map<String,String> _proxyParams = new HashMap<>();
-                            _proxyParams.put(PROTOCOL_VERSION_PARAM, advertisedVersion);
-                            reply = MetadataProviderProtocol.writeInit(_proxyParams);
-                        } else {
-                            // protocol version 1.8.0
-                            reply = MetadataProviderProtocol.writeInit((Map<String, String>) null);
-                        }
-                    } catch (MetadataProviderException | VersionException | Error | RuntimeException e) {
-                        reply = MetadataProviderProtocol.writeInit(e);
+                        initParams.remove(PROTOCOL_VERSION_PARAM);
+                        initParams.remove(KEEPALIVE_HINT_PARAM);
+                        // the version and keepalive hint are internal parameters, not to be sent to the custom Adapter
                     }
 
-                } else {
-                    _log.warn("Received Metadata Adapter initialization request; parameters ignored");
-                    Map<String,String> initParams = MetadataProviderProtocol.readInit(request.substring(sep + 1));
-                    try {
-                        String proxyVersion = initParams.get(PROTOCOL_VERSION_PARAM);
-                        String advertisedVersion = getSupportedVersion(proxyVersion);
-                        boolean is180 = (advertisedVersion == null);
-                        boolean is182 = (advertisedVersion != null && advertisedVersion.equals("1.8.2"));
-
-                        if (is180 || is182) {
-                            if (_closeExpected) {
-                                // WARNING: these versions don't provide for the CLOSE message,
-                                // but we previously asked for the CLOSE message with the RAC message;
-                                // hence we should no longer expect a CLOSE message, but only after
-                                // the client receives this answer, which confirms the protocol;
-                                // however, assuming that the Proxy Adapter only supports these versions,
-                                // we expect that it has ignored our request in the RAC message,
-                                // hence we can already stop expecting a CLOSE message.
-                            }
-                            _closeExpected = false;
-                        }
-                        if (! is180) {
-                            // protocol version 1.8.2 and above
-                            keepaliveHint = initParams.get(KEEPALIVE_HINT_PARAM);
-                            if (keepaliveHint == null) {
-                                keepaliveHint = "0";
-                            }
-                            Map<String,String> _proxyParams = new HashMap<>();
-                            _proxyParams.put(PROTOCOL_VERSION_PARAM, advertisedVersion);
-                            reply = MetadataProviderProtocol.writeInit(_proxyParams);
-                        } else {
-                            // protocol version 1.8.0
-                            reply = MetadataProviderProtocol.writeInit((Map<String, String>) null);
-                        }
-                    } catch (VersionException | Error | RuntimeException e) {
-                        reply = MetadataProviderProtocol.writeInit(e);
-                        // here the Remote Adapter is already initialized
-                        // and we should notify custom code of the issue;
-                        // but now the Proxy Adapter will terminate the connection and we lean on that
+                    Iterator<String> paramIter = _adapterParams.keySet().iterator();
+                    while (paramIter.hasNext()) {
+                        String param = paramIter.next();
+                        initParams.put(param, _adapterParams.get(param));
                     }
+                    _adapter.init(initParams, _adapterConfig);
+
+                    if (! is180) {
+                        // protocol version 1.8.2 and above
+                        Map<String,String> _proxyParams = new HashMap<>();
+                        _proxyParams.put(PROTOCOL_VERSION_PARAM, advertisedVersion);
+                        reply = MetadataProviderProtocol.writeInit(_proxyParams);
+                    } else {
+                        // protocol version 1.8.0
+                        reply = MetadataProviderProtocol.writeInit((Map<String, String>) null);
+                    }
+                } catch (MetadataProviderException | VersionException | Error | RuntimeException e) {
+                    reply = MetadataProviderProtocol.writeInit(e);
                 }
-
                 useKeepaliveHint(keepaliveHint);
                 sendReply(requestId, reply);
 
