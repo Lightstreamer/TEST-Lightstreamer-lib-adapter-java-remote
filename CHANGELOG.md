@@ -1,5 +1,21 @@
 # Lightstreamer Changelog - SDK for Java Remote Adapters
 
+## [current state]
+
+*Compatible with Adapter Remoting Infrastructure since Server version 7.0.*  
+*May not be compatible with code developed with the previous version; see compatibility notes below.*
+
+**Improvements**
+
+- Introduced full support for Server version 7.2. Now the library can log any message sent by the Proxy Adapter when forcibly closing the connection.
+
+- Modified the behavior when incomplete credentials are configured: now they are sent to the Proxy Adapter, whereas previously they were not sent.
+Note that, if the Proxy Adapter has credentials configured, they cannot be incomplete; hence the Proxy Adapter is expected to refuse the connection in all cases.
+
+- Removed the constructors of MetadataProviderServer and DataProviderServer that required a "initializeOnStart" argument, which were deprecated since 1.3, as they were only introduced to ensure backward compatibility with Server versions earlier than 6.0.<br/>
+**COMPATIBILITY NOTE:** *Existing source or binary code still relying on the deprecated constructors should be ported: code supplying the "false" value should just use the empty constructors; code supplying the "true" value should be revised.*<br/>
+As a consequence, the "start" method can no longer throw a DataProviderException or MetadataProviderException, but the throws clauses have been left for backward compatibility.
+
 ## [1.4.1] (24-05-2021)
 
 *Compatible with Adapter Remoting Infrastructure since Server version 7.0.*  
