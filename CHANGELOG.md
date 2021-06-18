@@ -68,8 +68,8 @@ Moreover, in that case, the default interval when not configured is now 10 secon
 
 - Deprecated the constructors of DataProviderServer and MetadataProviderServer that allow for the specification of initializeOnStart as true.
 These constructors will be removed in a future update, as the initializeOnStart flag was just meant as a temporary backward compatibility trick.<br/>
-**COMPATIBILITY NOTE:** *Existing code and binaries using the deprecated constructors are still supported, but it is recommended to align the code. See the notes in the constructor documentations for details.
-*Improved the documentation of the start method of the DataProviderServer and MetadataProviderServer classes, to clarify the behavior.*
+**COMPATIBILITY NOTE:** *Existing code and binaries using the deprecated constructors are still supported, but it is recommended to align the code. See the notes in the constructor documentations for details.*<br/>
+Improved the documentation of the start method of the DataProviderServer and MetadataProviderServer classes, to clarify the behavior.
 
 - Added clarifications in the documentation of the exception handlers and fixed a few obsolete notes.
 
@@ -89,10 +89,10 @@ These constructors will be removed in a future update, as the initializeOnStart 
 
 - Modified the interface in the part related to Mobile Push Notifications, after the full revision of Lightstreamer Server's MPN Module. In particular:
 	- Modified the signature of the notifyMpnDeviceAccess and notifyMpnDeviceTokenChange methods of the MetadataProvider interface, to add a session ID argument.<br/>
-	**COMPATIBILITY NOTE:** *Existing Remote Metadata Adapter source code has to be ported in order to be compiled with the new jar, unless the Adapter class inherits from the supplied MetadataProviderAdapter or LiteralBasedProvider and the above methods are not defined.<br/>
+	**COMPATIBILITY NOTE:** *Existing Remote Metadata Adapter source code has to be ported in order to be compiled with the new jar, unless the Adapter class inherits from the supplied MetadataProviderAdapter or LiteralBasedProvider and the above methods are not defined.<br/>*
 	*On the other hand, existing Remote Metadata Adapter binaries are still supported as long as the MPN Module is disabled. Otherwise, they should be recompiled after porting.*
 	- Revised the public constants defined in the MpnPlatformType class. The constants referring to the supported platforms have got new names and corresponding new values, whereas the constants for platforms not yet supported have been removed.<br/>
-	**COMPATIBILITY NOTE:** *Existing Remote Metadata Adapters explicitly referring to the constants have to be aligned.
+	**COMPATIBILITY NOTE:** *Existing Remote Metadata Adapters explicitly referring to the constants have to be aligned.*
 	*Even if just testing the values of the MpnPlatformType objects received from MpnDeviceInfo.getType, they still have to be aligned.*
 	- Removed the subclasses of MpnSubscriptionInfo (namely MpnApnsSubscriptionInfo and MpnGcmSubscriptionInfo) that were used by the SDK library to supply the attributes of the MPN subscriptions in notifyMpnSubscriptionActivation. Now, simple instances of
 	MpnSubscriptionInfo will be supplied and attribute information can be obtained through the new getNotificationFormat method.
