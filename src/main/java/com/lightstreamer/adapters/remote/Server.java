@@ -77,8 +77,7 @@ public abstract class Server {
     /** 
      * Sets the user-name credential to be sent to the Proxy Adapter upon connection.
      * The credentials are needed only if the Proxy Adapter is configured
-     * to require Remote Adapter authentication.
-     * The credentials will be sent only if both are non-null.<BR>
+     * to require Remote Adapter authentication.<BR>
      * 
      * The default value is null.
      * 
@@ -90,8 +89,7 @@ public abstract class Server {
     /** 
      * Sets the password credential to be sent to the Proxy Adapter upon connection.
      * The credentials are needed only if the Proxy Adapter is configured
-     * to require Remote Adapter authentication.
-     * The credentials will be sent only if both are non-null.<BR>
+     * to require Remote Adapter authentication.<BR>
      *
      * The default value is null.
      * 
@@ -101,8 +99,7 @@ public abstract class Server {
         _impl.setRemotePassword(password);
     }
     /** 
-     * Gets the user-name credential to be sent to the Proxy Adapter upon connection.
-     * The credentials will be sent only if both are non-null.<BR>
+     * Gets the user-name credential to be sent to the Proxy Adapter upon connection.<BR>
      * 
      * The default value is null.
      * 
@@ -113,8 +110,7 @@ public abstract class Server {
         return _impl.getRemoteUser();
     }
     /** 
-     * Gets the password credential to be sent to the Proxy Adapter upon connection.
-     * The credentials will be sent only if both are non-null.<BR>
+     * Gets the password credential to be sent to the Proxy Adapter upon connection.<BR>
      * 
      * The default value is null.
      * 
