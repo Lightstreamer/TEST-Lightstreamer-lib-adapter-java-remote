@@ -29,6 +29,8 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
     private static int _number = 0;
 
     private String _name;
+    
+    private final String _maxVersion = "1.8.3";
 
     private InputStream _requestStream;
     private OutputStream _replyStream;
@@ -138,6 +140,8 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
     }
 
     protected String getSupportedVersion(String proxyVersion) throws VersionException {
+        assert (_maxVersion.equals("1.8.3")); // to be kept aligned when upgrading
+        
         if (proxyVersion == null) {
             // protocol version 1.8.0 or earlier;
             // if we supported a version higher than 1.8.x, we should fail here;
@@ -145,7 +149,9 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
             // however, we don't support any version lower than 1.8.0,
             // so we could still be incompatible with the proxy version,
             // but we cannot distinguish the case and fail
+            _log.info("Received no Proxy Adapter protocol version information; assuming 1.8.0: accepted.");
             return null;    // version advertisement not available here
+                // downgrade to 1.8.0 to be taken care by the caller
         } else {
             // protocol version specified in proxyVersion (must be 1.8.2 or later);
             // if we supported a lower version, we could advertise it
@@ -155,14 +161,20 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
             if (proxyVersion.equals("1.8.0")) {
                 throw new VersionException("Unexpected protocol version number: " + proxyVersion);
                 // note: in principle, we should also refuse for inconsistency
-                // all protocols lower than 1.8.0 received through a remote init
+                // any protocol lower than 1.8.0 received through a remote init
             } else if (proxyVersion.equals("1.8.1")) {
                 // temporary version that was used internally but never published
                 throw new VersionException("Unsupported reserved protocol version number: " + proxyVersion);
             } else if (proxyVersion.equals("1.8.2")) {
+                _log.info("Received Proxy Adapter protocol version as " + proxyVersion + " for " + _name + ": accepted the downgrade.");
                 return "1.8.2";
+                    // downgrade to 1.8.2 to be taken care by the caller
+            } else if (proxyVersion.equals(_maxVersion)) {
+                _log.info("Received Proxy Adapter protocol version as " + proxyVersion + " for " + _name + ": versions match.");
+                return _maxVersion;
             } else {
-                return "1.8.3";
+                _log.info("Received Proxy Adapter protocol version as " + proxyVersion + " for " + _name + ": requesting " + _maxVersion + ".");
+                return _maxVersion;
             }
         }
     }
@@ -266,6 +278,7 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
     }
 
     public void start() throws RemotingException {
+        _log.info("Remote Adapter " + _name + " starting with protocol version " + _maxVersion);
         int keepaliveMillis;
         if (_configuredKeepaliveMillis == null) {
             keepaliveMillis = DEFAULT_KEEPALIVE_MILLIS;
