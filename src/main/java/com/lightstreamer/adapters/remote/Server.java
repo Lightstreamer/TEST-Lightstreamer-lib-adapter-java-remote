@@ -232,8 +232,10 @@ public abstract class Server {
      * 
      * @exception RemotingException An error occurred while setting up the
      * communication channels. The adapter was not started.
+     * @exception DataProviderException No longer thrown.
+     * @exception MetadataProviderException No longer thrown.
      */
-    public final void start() throws RemotingException {
+    public final void start() throws RemotingException, DataProviderException, MetadataProviderException {
         if (startedOnce) {
             throw new IllegalStateException("Reuse of Server object forbidden");
         }
