@@ -1,6 +1,6 @@
 # Lightstreamer Changelog - SDK for Java Remote Adapters
 
-## [1.5.0] (23-07-2021)
+## [1.5.0] (27-07-2021)
 
 *Compatible with Adapter Remoting Infrastructure since Server version 7.0.*  
 *May not be compatible with code developed with the previous version; see compatibility notes below.*
