@@ -233,6 +233,7 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
                 }
                 final Map<String, String> closeParams = DataProviderProtocol.readClose(request.substring(sep + 1));
                 String closeReason = closeParams.get(DataProviderProtocol.KEY_CLOSE_REASON);
+                dispose();
                 if (closeReason != null) {
                     throw new RemotingException("Close requested by the counterpart with reason: " + closeReason);
                 } else {

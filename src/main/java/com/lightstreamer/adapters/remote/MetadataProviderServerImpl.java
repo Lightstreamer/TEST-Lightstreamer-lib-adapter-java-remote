@@ -127,6 +127,7 @@ class MetadataProviderServerImpl extends ServerImpl {
                 }
                 final Map<String, String> closeParams = MetadataProviderProtocol.readClose(request.substring(sep + 1));
                 String closeReason = closeParams.get(MetadataProviderProtocol.KEY_CLOSE_REASON);
+                dispose();
                 if (closeReason != null) {
                     throw new RemotingException("Close requested by the counterpart with reason: " + closeReason);
                 } else {
