@@ -32,7 +32,7 @@ Since the API is available from the Maven Central Repository, to setup your deve
 <dependency>
     <groupId>com.lightstreamer</groupId>
     <artifactId>ls-adapter-remote</artifactId>
-    <version>1.4.1</version>
+    <version>1.5.0</version>
 </dependency>
 ```
 
