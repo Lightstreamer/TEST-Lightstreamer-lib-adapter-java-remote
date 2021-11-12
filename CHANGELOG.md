@@ -26,7 +26,7 @@ As a consequence, the "start" method can no longer throw a DataProviderException
 - Modified the reference to the external package for the log support, which is now available at<br/>
 https://mvnrepository.com/artifact/com.lightstreamer/ls-log-adapter-java<br/>
 with documentation available at<br/>
-https://sdk.lightstreamer.com/ls-log-adapter-java/1.0.2/api/com/lightstreamer/log/LoggerProvider.html
+https://lightstreamer.com/api/ls-log-adapter-java/1.0.2/com/lightstreamer/log/LoggerProvider.html
 
 - Added the source code of the sample LiteralBasedProvider, whose binary was already included
 in the generated jar.
@@ -55,7 +55,7 @@ https://github.com/Lightstreamer/Lightstreamer-lib-adapter-java-remote
 - Resorted to an external package for the log support. The new library is available at<br/>
 https://lightstreamer.com/repo/maven/com/lightstreamer/ls-log-adapter-java<br/>
 See the documentation at<br/>
-https://lightstreamer.com/repo/maven/com/lightstreamer/ls-log-adapter-java/1.0.2/ls-log-adapter-java-1.0.2-javadoc.jar%23/<br/>
+https://lightstreamer.com/api/ls-log-adapter-java/1.0.2/<br/>
 As a consequence, the signature of setLoggerProvider has changed and the whole "com.lightstreamer.adapters.remote.log" package has been removed.<br/>
 **COMPATIBILITY NOTE:** *Custom code using setLoggerProvider and the LoggerProvider interface should be revised, based on the new documentation.*
    
