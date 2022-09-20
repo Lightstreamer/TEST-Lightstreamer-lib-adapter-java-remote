@@ -20,12 +20,15 @@ import javax.annotation.Nullable;
  * Provides to the Data Adapter an alternative interface for creating Item Events
  * in order to send updates to Lightstreamer Kernel.
  * In this event, a name-index association is defined for all fields. These 
- * indexes will also be used to iterate through all the fields. Some indexes may not be associated to 
+ * indexes will be used by the Remote Server to iterate through all the fields. Some indexes may not be associated to 
  * fields in the event, but the number of such holes should be small. The name-index associations are local 
- * to the event and may be different even across events belonging to the same Item. Using this kind of 
- * events allows a particularly efficient management of events that belong to Items requested in RAW, 
- * DISTINCT or COMMAND Mode. All implementation methods should be nonblocking.
-*/
+ * to the event and may be different even across events belonging to the same Item.
+ *
+ * @deprecated The class is deprecated. Use a Map and
+ * {@link ItemEventListener#update(String, java.util.Map, boolean)}
+ * to supply field values. 
+ */
+@Deprecated
 public interface IndexedItemEvent {
 
     /** 
@@ -38,8 +41,6 @@ public interface IndexedItemEvent {
 
     /** 
      * Returns the index of a named Field. Returns -1 if such a field is not reported in this event. 
-     * Lightstreamer Kernel, through the Remote Server, will call this method
-     * up to once for every distinct client request of the Item. 
      * So, the implementation must be very fast.
      * 
      * @param name A Field name.
@@ -60,12 +61,12 @@ public interface IndexedItemEvent {
 
     /** 
      * Returns the value of a field whose index is supplied (null is a legal value too). Returns null if 
-     * the Field is not reported in the Item Event. The value can be expressed as either a String or a byte 
-     * array, the latter case being the most efficient, though restricted to the ISO-8859-1 (ISO-LATIN-1) 
-     * character set.
+     * the Field is not reported in the Item Event. The value should be expressed as a String;
+     * the use of a byte array, to supply a string encoded in the ISO-8859-1 (ISO-LATIN-1)
+     * character set, is also allowed, but it has been deprecated.
      * 
      * @param index A Field index.
-     * @return A String or a byte array containing the Field value, or null.
+     * @return A String containing the Field value, or null. A byte array is also accepted, but deprecated.
      */
     @Nullable
     Object getValue(int index);

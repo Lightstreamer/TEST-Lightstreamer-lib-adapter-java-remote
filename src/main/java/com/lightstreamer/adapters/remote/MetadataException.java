@@ -21,11 +21,11 @@ import javax.annotation.Nonnull;
  */
 public class MetadataException extends Exception {
 
-    public MetadataException(@Nullable String message, @Nonnull Exception innerException) {
+    MetadataException(@Nullable String message, @Nonnull Exception innerException) {
         super(message, innerException);
     }
 
-    public MetadataException(@Nullable String message) {
+    MetadataException(@Nullable String message) {
         super(message);
     }
 

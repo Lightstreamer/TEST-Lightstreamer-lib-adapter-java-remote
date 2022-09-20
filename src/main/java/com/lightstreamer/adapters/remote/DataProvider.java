@@ -36,7 +36,7 @@ import javax.annotation.Nullable;
  * to an Item, the current state of the Item data can be sent to the Server
  * before the updates. This allows the Server to maintain the Item state,
  * by integrating the new ItemEvents into the state (in a way that depends
- * on the Item type) and to make this state available to the Clients. <BR>
+ * on the Item mode) and to make this state available to the Clients. <BR>
  * Note that the interaction between the Server and the Data Adapter and the
  * interaction between the Server and any Client are independent activities.
  * As a consequence, the very first ItemEvents sent by the Data Adapter to
@@ -174,7 +174,7 @@ public interface DataProvider {
      * Called by Lightstreamer Kernel through the Remote Server
      * to know whether the Data Adapter, after a subscription for an Item, 
      * will send some Snapshot Item Events before sending the updates. An Item Snapshot can be represented 
-     * by zero, one or more Item Events, also depending on the Item type. The decision whether to supply or 
+     * by zero, one or more Item Events, also depending on the Item mode. The decision whether to supply or 
      * not to supply Snapshot information is entirely up to the Data Adapter. <BR>
      * The method should be nonblocking. The availability of the snapshot for an
      * Item should be a known architectural property. When the snapshot, though expected,

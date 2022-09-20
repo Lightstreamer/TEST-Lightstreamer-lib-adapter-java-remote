@@ -30,7 +30,7 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
 
     private String _name;
     
-    private final String _maxVersion = "1.8.3";
+    protected final String _maxVersion = "1.9.0";
 
     private InputStream _requestStream;
     private OutputStream _replyStream;
@@ -140,18 +140,11 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
     }
 
     protected String getSupportedVersion(String proxyVersion) throws VersionException {
-        assert (_maxVersion.equals("1.8.3")); // to be kept aligned when upgrading
+        assert (_maxVersion.equals("1.9.0")); // to be kept aligned when upgrading
         
         if (proxyVersion == null) {
-            // protocol version 1.8.0 or earlier;
-            // if we supported a version higher than 1.8.x, we should fail here;
-            // but we currently support 1.8.x;
-            // however, we don't support any version lower than 1.8.0,
-            // so we could still be incompatible with the proxy version,
-            // but we cannot distinguish the case and fail
-            _log.info("Received no Proxy Adapter protocol version information; assuming 1.8.0: accepted.");
-            return null;    // version advertisement not available here
-                // downgrade to 1.8.0 to be taken care by the caller
+            // protocol version 1.8.0 or earlier, not supported and not negotiable
+            throw new VersionException("Usupported protocol version");
         } else {
             // protocol version specified in proxyVersion (must be 1.8.2 or later);
             // if we supported a lower version, we could advertise it
@@ -165,10 +158,10 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
             } else if (proxyVersion.equals("1.8.1")) {
                 // temporary version that was used internally but never published
                 throw new VersionException("Unsupported reserved protocol version number: " + proxyVersion);
-            } else if (proxyVersion.equals("1.8.2")) {
-                _log.info("Received Proxy Adapter protocol version as " + proxyVersion + " for " + _name + ": accepted the downgrade.");
-                return "1.8.2";
-                    // downgrade to 1.8.2 to be taken care by the caller
+            } else if (proxyVersion.equals("1.8.2") || proxyVersion.equals("1.8.3")) {
+                _log.info("Received Proxy Adapter protocol version as " + proxyVersion + " for " + _name + ": no longer supported.");
+                return _maxVersion;
+                    // the upgrade will probably be refused by the caller
             } else if (proxyVersion.equals(_maxVersion)) {
                 _log.info("Received Proxy Adapter protocol version as " + proxyVersion + " for " + _name + ": versions match.");
                 return _maxVersion;

@@ -25,7 +25,6 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
     private static Logger _log = LogManager.getLogger("com.lightstreamer.adapters.remote.Server.DataProviderServer");
 
     private boolean _initExpected;
-    private boolean _closeExpected;
     private DataProvider _adapter;
     private Map<String,String> _adapterParams;
     private String _adapterConfig;
@@ -33,8 +32,6 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
 
     public DataProviderServerImpl() {
         _initExpected = true;
-        _closeExpected = true;
-            // we start with the current version of the protocol, which does not conflict with earlier versions
         _adapter = null;
         _adapterParams = new HashMap<String,String>();
         _adapterConfig = null;
@@ -67,7 +64,7 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
         _log.info("Managing Data Adapter " + super.getName() + " with " + _helper.getPoolType());
         super.start();
 
-        Map<String, String> credentials = getCredentialParams(_closeExpected);
+        Map<String, String> credentials = getCredentialParams(true);
         if (credentials != null) {
             sendRemoteCredentials(credentials);
         }
@@ -226,7 +223,7 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
         String method = request.substring(0, sep);
 
         try {
-            if (method.equals(DataProviderProtocol.METHOD_CLOSE) && _closeExpected) {
+            if (method.equals(DataProviderProtocol.METHOD_CLOSE)) {
                 // this can also precede the init request
                 if (! requestId.equals(DataProviderProtocol.CLOSE_REQUEST_ID)) {
                     throw new RemotingException("Unexpected id found while parsing a " + DataProviderProtocol.METHOD_CLOSE + " request");
@@ -258,31 +255,19 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
                     String proxyVersion = initParams.get(PROTOCOL_VERSION_PARAM);
                     String advertisedVersion = getSupportedVersion(proxyVersion);
                         // this may prevent the initialization
-                    boolean is180 = (advertisedVersion == null);
-                    boolean is182 = (advertisedVersion != null && advertisedVersion.equals("1.8.2"));
 
-                    if (is180 || is182) {
-                        if (_closeExpected) {
-                            // WARNING: these versions don't provide for the CLOSE message,
-                            // but we previously asked for the CLOSE message with the RAC message;
-                            // hence we should no longer expect a CLOSE message, but only after
-                            // the client receives this answer, which confirms the protocol;
-                            // however, assuming that the Proxy Adapter only supports these versions,
-                            // we expect that it has ignored our request in the RAC message,
-                            // hence we can already stop expecting a CLOSE message.
-                        }
-                        _closeExpected = false; 
+                    // we can support multiple versions based on the request of the counterparty
+                    // and the version for this connection is indicated by advertisedVersion, 
+                    // but currently we only support the latest version
+                    assert (advertisedVersion.equals(_maxVersion));
+
+                    keepaliveHint = initParams.get(KEEPALIVE_HINT_PARAM);
+                    if (keepaliveHint == null) {
+                        keepaliveHint = "0";
                     }
-                    if (! is180) {
-                        // protocol version 1.8.2 and above
-                        keepaliveHint = initParams.get(KEEPALIVE_HINT_PARAM);
-                        if (keepaliveHint == null) {
-                            keepaliveHint = "0";
-                        }
-                        initParams.remove(PROTOCOL_VERSION_PARAM);
-                        initParams.remove(KEEPALIVE_HINT_PARAM);
-                        // the version and keepalive hint are internal parameters, not to be sent to the custom Adapter
-                    }
+                    initParams.remove(PROTOCOL_VERSION_PARAM);
+                    initParams.remove(KEEPALIVE_HINT_PARAM);
+                    // the version and keepalive hint are internal parameters, not to be sent to the custom Adapter
 
                     Iterator<String> paramIter = _adapterParams.keySet().iterator();
                     while (paramIter.hasNext()) {
@@ -292,15 +277,9 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
                     _adapter.init(initParams, _adapterConfig);
                     _adapter.setListener(this);
 
-                    if (! is180) {
-                        // protocol version 1.8.2 and above
-                        Map<String,String> _proxyParams = new HashMap<>();
-                        _proxyParams.put(PROTOCOL_VERSION_PARAM, advertisedVersion);
-                        reply = DataProviderProtocol.writeInit(_proxyParams);
-                    } else {
-                        // protocol version 1.8.0
-                        reply = DataProviderProtocol.writeInit((Map<String, String>) null);
-                    }
+                    Map<String,String> _proxyParams = new HashMap<>();
+                    _proxyParams.put(PROTOCOL_VERSION_PARAM, advertisedVersion);
+                    reply = DataProviderProtocol.writeInit(_proxyParams);
                 } catch (DataProviderException | VersionException | Error | RuntimeException e) {
                     reply = DataProviderProtocol.writeInit(e);
                 }
@@ -344,14 +323,14 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
     public boolean handleException(RemotingException exception) {
         _log.error("Caught exception: " + exception.getMessage() + ", trying to notify a failure...", exception);
 
+        String notify;
         try {
-            String notify = DataProviderProtocol.writeFailure(exception);
-            sendNotify(notify);
-            
+            notify = DataProviderProtocol.writeFailure(exception);
         } catch (RemotingException e) {
-            _log.error("Caught second-level exception while trying to notify a first-level exception: " + e.getMessage(), e);
+            // we cannot give up for encoding issues
+            notify = DataProviderProtocol.writeFailure();
         }
-            
+        sendNotify(notify);
         return false;
     }
 
@@ -473,14 +452,38 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
         }
     }
 
-    public final void failure(Exception exception) {
-        try {
-            String notify = DataProviderProtocol.writeFailure(exception);
-            sendNotify(notify);
+    public final void declareFieldDiffOrder(String itemName, Map<String,DiffAlgorithm[]> algorithmsMap) {
+        // both getSubscriptionCode and sendNotify take simple locks,
+        // which don't block and don't take further locks;
+        // hence this invocation can be made by the Adapter while holding
+        // the lock on the item state, with no issues
+        String code = _helper.getSubscriptionCode(itemName);
+        if (code != null) {
+            try {
+                String notify = DataProviderProtocol.writeDeclareFieldDiffOrder(itemName, code, algorithmsMap);
+                sendNotify(notify);
 
-        } catch (RemotingException e) {
-            onException(e);
+            } catch (RemotingException e) {
+                onException(e);
+            }
+        } else {
+            // there is no active subscription in this moment;
+            // this must be an error by the Adapter, which must have sent
+            // the event after the termination of an unsubscribe()
+            // (or before, but without synchronizing, which is also wrong)
+            _log.warn("Unexpected diff algorithms declaration for item " + itemName);
         }
+    }
+
+    public final void failure(Exception exception) {
+        String notify;
+        try {
+            notify = DataProviderProtocol.writeFailure(exception);
+        } catch (RemotingException e) {
+            // we cannot give up for encoding issues
+            notify = DataProviderProtocol.writeFailure();
+        }
+        sendNotify(notify);
     }
 
 }

@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
+import java.util.concurrent.Callable;
 
 class MetadataProviderProtocol extends BaseProtocol {
 
@@ -36,6 +37,7 @@ class MetadataProviderProtocol extends BaseProtocol {
     public static final char SUBTYPE_METADATAPROVIDER_EXCEPTION = 'M';
     public static final char SUBTYPE_ACCESS_EXCEPTION = 'A';
     public static final char SUBTYPE_CREDITS_EXCEPTION = 'C';
+    public static final char SUBTYPE_RESOURCE_EXCEPTION = 'R';
     public static final char SUBTYPE_CONFLICTING_SESSION_EXCEPTION = 'X';
     public static final char SUBTYPE_ITEMS_EXCEPTION = 'I';
     public static final char SUBTYPE_SCHEMA_EXCEPTION = 'S';
@@ -56,6 +58,9 @@ class MetadataProviderProtocol extends BaseProtocol {
     public static final String METHOD_NOTIFY_MPN_DEVICE_ACCESS = "MDA";
     public static final String METHOD_NOTIFY_MPN_SUBSCRIPTION_ACTIVATION = "MSA";
     public static final String METHOD_NOTIFY_MPN_DEVICE_TOKEN_CHANGE = "MDC";
+
+    public static final String METHOD_FORCE_SESSION_TERMINATION = "FST";
+    public static final String METHOD_FORCE_UNSUBSCRIPTION = "FUS";
 
     // ////////////////////////////////////////////////////////////////////////
     // REMOTE INIT
@@ -79,7 +84,7 @@ class MetadataProviderProtocol extends BaseProtocol {
 
                 case TYPE_STRING:
                     val = tokenizer.nextToken();
-                    headerName = decodeString(val);
+                    headerName = decodeStringOld(val);
                     break;
 
                 default:
@@ -92,7 +97,7 @@ class MetadataProviderProtocol extends BaseProtocol {
 
                 case TYPE_STRING:
                     val = tokenizer.nextToken();
-                    headerValue = decodeString(val);
+                    headerValue = decodeStringOld(val);
                     break;
 
                 default:
@@ -124,11 +129,11 @@ class MetadataProviderProtocol extends BaseProtocol {
                 sb.append(SEP);
                 sb.append(TYPE_STRING);
                 sb.append(SEP);
-                sb.append(encodeString(entry.getKey()));
+                sb.append(encodeStringOld(entry.getKey()));
                 sb.append(SEP);
                 sb.append(TYPE_STRING);
                 sb.append(SEP);
-                sb.append(encodeString(entry.getValue()));
+                sb.append(encodeStringOld(entry.getValue()));
             }
         } else {
             // protocol version 1.8.0
@@ -152,7 +157,7 @@ class MetadataProviderProtocol extends BaseProtocol {
             // VersionException possible here, but used internally and not specified in the protocol
         }
         sb.append(SEP);
-        sb.append(encodeString(exception.getMessage()));
+        sb.append(encodeStringOld(exception.getMessage()));
 
         return sb.toString();
     }
@@ -344,7 +349,11 @@ class MetadataProviderProtocol extends BaseProtocol {
         sb.append(SEP);
         sb.append(TYPE_EXCEPTION);
         if (exception instanceof AccessException) {
-            sb.append(SUBTYPE_ACCESS_EXCEPTION);
+            if (exception instanceof ResourceUnavailableException) {
+                sb.append(SUBTYPE_RESOURCE_EXCEPTION);
+            } else {
+                sb.append(SUBTYPE_ACCESS_EXCEPTION);
+            }
         }
         if (exception instanceof CreditsException) {
             sb.append(SUBTYPE_CREDITS_EXCEPTION);
@@ -811,12 +820,14 @@ class MetadataProviderProtocol extends BaseProtocol {
         return data;
     }
 
-    public static String writeNotifyNewSession() {
+    public static String writeNotifyNewSession(SessionData sessionData) {
         StringBuilder sb = new StringBuilder();
 
         sb.append(METHOD_NOTIFY_NEW_SESSION);
         sb.append(SEP);
-        sb.append(TYPE_VOID);
+        sb.append(TYPE_INT);
+        sb.append(SEP);
+        sb.append(sessionData.timeToLiveSeconds);
 
         return sb.toString();
     }
@@ -946,10 +957,12 @@ class MetadataProviderProtocol extends BaseProtocol {
             int winIndex = -1;
             Mode mode = null;
             String id = null;
+            String dataAdapter = null;
             String schema = null;
             int min = -1;
             int max = -1;
             String selector = null;
+            int numItems = 0;
 
             typ = tokenizer.nextToken();
 
@@ -998,6 +1011,21 @@ class MetadataProviderProtocol extends BaseProtocol {
 
             try {
                 typ = tokenizer.nextToken();
+            } catch (NoSuchElementException e6) {
+                throw new RemotingException("Token not found while parsing a " + METHOD_NOTIFY_NEW_TABLES + " request");
+            }
+            switch (typ.toCharArray()[0]) {
+
+                case TYPE_STRING:
+                    dataAdapter = decodeString(tokenizer.nextToken());
+                    break;
+
+                default:
+                    throw new RemotingException("Unknown type '" + typ + "' found while parsing a " + METHOD_NOTIFY_NEW_TABLES + " request");
+            }
+
+            try {
+                typ = tokenizer.nextToken();
             } catch (NoSuchElementException e5) {
                 throw new RemotingException("Token not found while parsing a " + METHOD_NOTIFY_NEW_TABLES + " request");
             }
@@ -1011,10 +1039,11 @@ class MetadataProviderProtocol extends BaseProtocol {
                     throw new RemotingException("Unknown type '" + typ + "' found while parsing a " + METHOD_NOTIFY_NEW_TABLES + " request");
             }
 
-            if (!tokenizer.hasMoreTokens()) {
-                break;
+            try {
+                typ = tokenizer.nextToken();
+            } catch (NoSuchElementException e5) {
+                throw new RemotingException("Token not found while parsing a " + METHOD_NOTIFY_NEW_TABLES + " request");
             }
-            typ = tokenizer.nextToken();
 
             switch (typ.toCharArray()[0]) {
 
@@ -1026,10 +1055,11 @@ class MetadataProviderProtocol extends BaseProtocol {
                     throw new RemotingException("Unknown type '" + typ + "' found while parsing a " + METHOD_NOTIFY_NEW_TABLES + " request");
             }
 
-            if (!tokenizer.hasMoreTokens()) {
-                break;
+            try {
+                typ = tokenizer.nextToken();
+            } catch (NoSuchElementException e5) {
+                throw new RemotingException("Token not found while parsing a " + METHOD_NOTIFY_NEW_TABLES + " request");
             }
-            typ = tokenizer.nextToken();
 
             switch (typ.toCharArray()[0]) {
 
@@ -1056,7 +1086,42 @@ class MetadataProviderProtocol extends BaseProtocol {
                     throw new RemotingException("Unknown type '" + typ + "' found while parsing a " + METHOD_NOTIFY_NEW_TABLES + " request");
             }
 
-            TableInfo table = new TableInfo(winIndex, mode, id, schema, min, max, selector);
+            try {
+                typ = tokenizer.nextToken();
+            } catch (NoSuchElementException e5) {
+                throw new RemotingException("Token not found while parsing a " + METHOD_NOTIFY_NEW_TABLES + " request");
+            }
+
+            switch (typ.toCharArray()[0]) {
+
+                case TYPE_INT:
+                    numItems = Integer.parseInt(tokenizer.nextToken());
+                    break;
+
+                default:
+                    throw new RemotingException("Unknown type '" + typ + "' found while parsing a " + METHOD_NOTIFY_NEW_TABLES + " request");
+            }
+            
+            ArrayList<String> itemNames = new ArrayList<>();
+            for (int i = 0; i < numItems; i++) {
+                try {
+                    typ = tokenizer.nextToken();
+                } catch (NoSuchElementException e6) {
+                    throw new RemotingException("Token not found while parsing a " + METHOD_NOTIFY_NEW_TABLES + " request");
+                }
+                switch (typ.toCharArray()[0]) {
+
+                    case TYPE_STRING:
+                        itemNames.add(decodeString(tokenizer.nextToken()));
+                        break;
+
+                    default:
+                        throw new RemotingException("Unknown type '" + typ + "' found while parsing a " + METHOD_NOTIFY_NEW_TABLES + " request");
+                }
+            }
+            String[] items = itemNames.toArray(new String[0]);
+
+            TableInfo table = new TableInfo(winIndex, mode, id, dataAdapter, schema, min, max, selector, items, null);
             tableList.add(table);
 
         }
@@ -1067,12 +1132,18 @@ class MetadataProviderProtocol extends BaseProtocol {
         return data;
     }
 
-    public static String writeNotifyNewTables() {
+    public static String writeNotifyNewTables(TableData tableData) {
         StringBuilder sb = new StringBuilder();
 
         sb.append(METHOD_NOTIFY_NEW_TABLES);
         sb.append(SEP);
-        sb.append(TYPE_VOID);
+        sb.append(TYPE_BOOLEAN);
+        sb.append(SEP);
+        sb.append(tableData.enableUnsubscription ? VALUE_TRUE : VALUE_FALSE);
+        sb.append(SEP);
+        sb.append(TYPE_BOOLEAN);
+        sb.append(SEP);
+        sb.append(tableData.wantsFinalStatistics ? VALUE_TRUE : VALUE_FALSE);
 
         return sb.toString();
     }
@@ -1131,10 +1202,13 @@ class MetadataProviderProtocol extends BaseProtocol {
             int winIndex = -1;
             Mode mode = null;
             String id = null;
+            String dataAdapter = null;
             String schema = null;
             int min = -1;
             int max = -1;
             String selector = null;
+            int numItems = 0;
+            int numStats = 0;
 
             typ = tokenizer.nextToken();
 
@@ -1183,6 +1257,21 @@ class MetadataProviderProtocol extends BaseProtocol {
 
             try {
                 typ = tokenizer.nextToken();
+            } catch (NoSuchElementException e6) {
+                throw new RemotingException("Token not found while parsing a " + METHOD_NOTIFY_TABLES_CLOSE + " request");
+            }
+            switch (typ.toCharArray()[0]) {
+
+                case TYPE_STRING:
+                    dataAdapter = decodeString(tokenizer.nextToken());
+                    break;
+
+                default:
+                    throw new RemotingException("Unknown type '" + typ + "' found while parsing a " + METHOD_NOTIFY_TABLES_CLOSE + " request");
+            }
+
+            try {
+                typ = tokenizer.nextToken();
             } catch (NoSuchElementException e4) {
                 throw new RemotingException("Token not found while parsing a " + METHOD_NOTIFY_TABLES_CLOSE + " request");
             }
@@ -1196,10 +1285,11 @@ class MetadataProviderProtocol extends BaseProtocol {
                     throw new RemotingException("Unknown type '" + typ + "' found while parsing a " + METHOD_NOTIFY_TABLES_CLOSE + " request");
             }
 
-            if (!tokenizer.hasMoreTokens()) {
-                break;
+            try {
+                typ = tokenizer.nextToken();
+            } catch (NoSuchElementException e5) {
+                throw new RemotingException("Token not found while parsing a " + METHOD_NOTIFY_TABLES_CLOSE + " request");
             }
-            typ = tokenizer.nextToken();
 
             switch (typ.toCharArray()[0]) {
 
@@ -1211,10 +1301,11 @@ class MetadataProviderProtocol extends BaseProtocol {
                     throw new RemotingException("Unknown type '" + typ + "' found while parsing a " + METHOD_NOTIFY_TABLES_CLOSE + " request");
             }
 
-            if (!tokenizer.hasMoreTokens()) {
-                break;
+            try {
+                typ = tokenizer.nextToken();
+            } catch (NoSuchElementException e5) {
+                throw new RemotingException("Token not found while parsing a " + METHOD_NOTIFY_TABLES_CLOSE + " request");
             }
-            typ = tokenizer.nextToken();
 
             switch (typ.toCharArray()[0]) {
 
@@ -1241,7 +1332,120 @@ class MetadataProviderProtocol extends BaseProtocol {
                     throw new RemotingException("Unknown type '" + typ + "' found while parsing a " + METHOD_NOTIFY_TABLES_CLOSE + " request");
             }
 
-            TableInfo table = new TableInfo(winIndex, mode, id, schema, min, max, selector);
+            try {
+                typ = tokenizer.nextToken();
+            } catch (NoSuchElementException e5) {
+                throw new RemotingException("Token not found while parsing a " + METHOD_NOTIFY_TABLES_CLOSE + " request");
+            }
+
+            switch (typ.toCharArray()[0]) {
+
+                case TYPE_INT:
+                    numItems = Integer.parseInt(tokenizer.nextToken());
+                    break;
+
+                default:
+                    throw new RemotingException("Unknown type '" + typ + "' found while parsing a " + METHOD_NOTIFY_TABLES_CLOSE + " request");
+            }
+            
+            ArrayList<String> itemNames = new ArrayList<>();
+            for (int i = 0; i < numItems; i++) {
+                try {
+                    typ = tokenizer.nextToken();
+                } catch (NoSuchElementException e6) {
+                    throw new RemotingException("Token not found while parsing a " + METHOD_NOTIFY_TABLES_CLOSE + " request");
+                }
+                switch (typ.toCharArray()[0]) {
+
+                    case TYPE_STRING:
+                        itemNames.add(decodeString(tokenizer.nextToken()));
+                        break;
+
+                    default:
+                        throw new RemotingException("Unknown type '" + typ + "' found while parsing a " + METHOD_NOTIFY_TABLES_CLOSE + " request");
+                }
+            }
+            String[] items = itemNames.toArray(new String[0]);
+
+            try {
+                typ = tokenizer.nextToken();
+            } catch (NoSuchElementException e5) {
+                throw new RemotingException("Token not found while parsing a " + METHOD_NOTIFY_TABLES_CLOSE + " request");
+            }
+
+            switch (typ.toCharArray()[0]) {
+
+                case TYPE_INT:
+                    numStats = Integer.parseInt(tokenizer.nextToken());
+                    break;
+
+                default:
+                    throw new RemotingException("Unknown type '" + typ + "' found while parsing a " + METHOD_NOTIFY_TABLES_CLOSE + " request");
+            }
+            
+            SubscriptionStatistics[] statistics;
+            if (numStats > 0) {
+                ArrayList<SubscriptionStatistics> stats = new ArrayList<>();
+
+                for (int i = 0; i < numStats; i++) {
+                    long totRealTime;
+                    long totLost;
+                    long totFiltered;
+
+                    try {
+                        typ = tokenizer.nextToken();
+                    } catch (NoSuchElementException e6) {
+                        throw new RemotingException("Token not found while parsing a " + METHOD_NOTIFY_TABLES_CLOSE + " request");
+                    }
+                    switch (typ.toCharArray()[0]) {
+
+                        case TYPE_LONG:
+                            totRealTime = Long.parseLong(tokenizer.nextToken());
+                            break;
+
+                        default:
+                            throw new RemotingException("Unknown type '" + typ + "' found while parsing a " + METHOD_NOTIFY_TABLES_CLOSE + " request");
+                    }
+
+                    try {
+                        typ = tokenizer.nextToken();
+                    } catch (NoSuchElementException e6) {
+                        throw new RemotingException("Token not found while parsing a " + METHOD_NOTIFY_TABLES_CLOSE + " request");
+                    }
+                    switch (typ.toCharArray()[0]) {
+
+                        case TYPE_LONG:
+                            totLost = Long.parseLong(tokenizer.nextToken());
+                            break;
+
+                        default:
+                            throw new RemotingException("Unknown type '" + typ + "' found while parsing a " + METHOD_NOTIFY_TABLES_CLOSE + " request");
+                    }
+
+                    try {
+                        typ = tokenizer.nextToken();
+                    } catch (NoSuchElementException e6) {
+                        throw new RemotingException("Token not found while parsing a " + METHOD_NOTIFY_TABLES_CLOSE + " request");
+                    }
+                    switch (typ.toCharArray()[0]) {
+
+                        case TYPE_LONG:
+                            totFiltered = Long.parseLong(tokenizer.nextToken());
+                            break;
+
+                        default:
+                            throw new RemotingException("Unknown type '" + typ + "' found while parsing a " + METHOD_NOTIFY_TABLES_CLOSE + " request");
+                    }
+
+                    stats.add(new SubscriptionStatistics(totRealTime, totLost, totFiltered));
+                }
+
+                statistics = stats.toArray(new SubscriptionStatistics[0]);
+            } else {
+                statistics = null;
+            }
+
+            TableInfo table = new TableInfo(winIndex, mode, id, dataAdapter, schema, min, max, selector, items, statistics);
             tableList.add(table);
 
         }
@@ -1419,6 +1623,14 @@ class MetadataProviderProtocol extends BaseProtocol {
 
             String id = decodeString(tokenizer.nextToken());
 
+            // Table info: data adapter
+            typ = tokenizer.nextToken();
+            if (typ.toCharArray()[0] != TYPE_STRING) {
+                throw new RemotingException("Unexpected type '" + typ + "' found while parsing a " + METHOD_NOTIFY_MPN_SUBSCRIPTION_ACTIVATION + " request");
+            }
+
+            String dataAdapter = decodeString(tokenizer.nextToken());
+
             // Table info: schema
             typ = tokenizer.nextToken();
             if (typ.toCharArray()[0] != TYPE_STRING) {
@@ -1443,7 +1655,26 @@ class MetadataProviderProtocol extends BaseProtocol {
 
             int max = Integer.parseInt(tokenizer.nextToken());
 
-            TableInfo table = new TableInfo(winIndex, mode, id, schema, min, max, null);
+            // Table info: item names
+            typ = tokenizer.nextToken();
+            if (typ.toCharArray()[0] != TYPE_INT) {
+                throw new RemotingException("Unexpected type '" + typ + "' found while parsing a " + METHOD_NOTIFY_MPN_SUBSCRIPTION_ACTIVATION + " request");
+            }
+
+            int numItems = Integer.parseInt(tokenizer.nextToken());
+
+            ArrayList<String> itemNames = new ArrayList<>();
+            for (int i = 0; i < numItems; i++) {
+                typ = tokenizer.nextToken();
+                if (typ.toCharArray()[0] != TYPE_STRING) {
+                    throw new RemotingException("Unexpected type '" + typ + "' found while parsing a " + METHOD_NOTIFY_MPN_SUBSCRIPTION_ACTIVATION + " request");
+                }
+
+                itemNames.add(decodeString(tokenizer.nextToken()));
+            }
+            String[] items = itemNames.toArray(new String[0]);
+
+            TableInfo table = new TableInfo(winIndex, mode, id, dataAdapter, schema, min, max, null, items, null);
             data.table = table;
 
             // Platform type
@@ -1630,6 +1861,108 @@ class MetadataProviderProtocol extends BaseProtocol {
             sb.append(SEP);
             sb.append(encodeString(((CreditsException) exception).getClientErrorMsg()));
         }
+
+        return sb.toString();
+    }
+
+    // ////////////////////////////////////////////////////////////////////////
+    // FORCE SESSION TERMINATION
+
+    public static Callable<Void> readForceSessionTermination(String request) throws RemotingException {
+
+        StringTokenizer tokenizer = new StringTokenizer(request, "" + SEP);
+        try {
+            String typ = tokenizer.nextToken();
+            if (typ.toCharArray()[0] == TYPE_VOID) {
+                // normal case
+                return () -> { return null; };
+            }
+
+            if (typ.toCharArray()[0] != TYPE_EXCEPTION) {
+                throw new RemotingException("Unexpected type '" + typ + "' found while parsing a " + METHOD_FORCE_SESSION_TERMINATION + " request");
+            }
+
+            String msg = decodeString(tokenizer.nextToken());
+            return () -> { throw new Exception(msg); };
+
+        } catch (NoSuchElementException e) {
+            throw new RemotingException("Token not found while parsing a " + METHOD_FORCE_SESSION_TERMINATION + " request");
+        }
+    }
+
+    public static String writeForceSessionTermination(String sessionID) throws RemotingException {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(METHOD_FORCE_SESSION_TERMINATION);
+        sb.append(SEP);
+        sb.append(TYPE_STRING);
+        sb.append(SEP);
+        sb.append(encodeString(sessionID));
+        sb.append(SEP);
+        sb.append(TYPE_VOID);
+
+        return sb.toString();
+    }
+
+    public static String writeForceSessionTermination(String sessionID, int causeCode, String causeMessage) throws RemotingException {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(METHOD_FORCE_SESSION_TERMINATION);
+        sb.append(SEP);
+        sb.append(TYPE_STRING);
+        sb.append(SEP);
+        sb.append(encodeString(sessionID));
+        sb.append(SEP);
+        sb.append(TYPE_INT);
+        sb.append(SEP);
+        sb.append(causeCode);
+        sb.append(SEP);
+        sb.append(TYPE_STRING);
+        sb.append(SEP);
+        sb.append(encodeString(causeMessage));
+
+        return sb.toString();
+    }
+
+    // ////////////////////////////////////////////////////////////////////////
+    // FORCE UNSUBSCRIPTION
+
+    public static Callable<Boolean> readForceUnsubscription(String request) throws RemotingException {
+
+        StringTokenizer tokenizer = new StringTokenizer(request, "" + SEP);
+        try {
+            String typ = tokenizer.nextToken();
+            if (typ.toCharArray()[0] == TYPE_BOOLEAN) {
+                // normal case
+                String value = tokenizer.nextToken();
+                boolean outcome = (! value.equals(VALUE_FALSE));
+                return () -> { return outcome; };
+            }
+
+            if (typ.toCharArray()[0] != TYPE_EXCEPTION) {
+                throw new RemotingException("Unexpected type '" + typ + "' found while parsing a " + METHOD_FORCE_UNSUBSCRIPTION + " request");
+            }
+
+            String msg = decodeString(tokenizer.nextToken());
+            return () -> { throw new Exception(msg); };
+
+        } catch (NoSuchElementException e) {
+            throw new RemotingException("Token not found while parsing a " + METHOD_FORCE_UNSUBSCRIPTION + " request");
+        }
+    }
+
+    public static String writeForceUnsubscription(String sessionID, int winIndex) throws RemotingException {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(METHOD_FORCE_UNSUBSCRIPTION);
+        sb.append(SEP);
+        sb.append(TYPE_STRING);
+        sb.append(SEP);
+        sb.append(encodeString(sessionID));
+        sb.append(SEP);
+        sb.append(TYPE_INT);
+        sb.append(SEP);
+        sb.append(winIndex);
 
         return sb.toString();
     }

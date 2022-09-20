@@ -20,6 +20,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutorService;
 
 import com.lightstreamer.log.LogManager;
@@ -29,18 +31,17 @@ class MetadataProviderServerImpl extends ServerImpl {
     private static Logger _log = LogManager.getLogger("com.lightstreamer.adapters.remote.Server.MetadataProviderServer");
 
     private boolean _initExpected;
-    private boolean _closeExpected;
     private MetadataProvider _adapter;
     private Map<String,String> _adapterParams;
     private String _adapterConfig;
 
     private final String _poolType;
     private final ExecutorService _executor;
+    
+    private MetadataControlManager myMetadataControlHelper = new MetadataControlManager(_log);
             
     public MetadataProviderServerImpl() {
         _initExpected = true;
-        _closeExpected = true;
-            // we start with the current version of the protocol, which does not conflict with earlier versions
         _adapter = null;
         _adapterParams = new HashMap<String,String>();
         _adapterConfig = null;
@@ -92,7 +93,7 @@ class MetadataProviderServerImpl extends ServerImpl {
         _log.info("Managing Metadata Adapter " + super.getName() + " with " + _poolType);
         super.start();
 
-        Map<String, String> credentials = getCredentialParams(_closeExpected);
+        Map<String, String> credentials = getCredentialParams(true);
         if (credentials != null) {
             sendRemoteCredentials(credentials);
         }
@@ -120,7 +121,7 @@ class MetadataProviderServerImpl extends ServerImpl {
         String method = request.substring(0, sep);
 
         try {
-            if (method.equals(MetadataProviderProtocol.METHOD_CLOSE) && _closeExpected) {
+            if (method.equals(MetadataProviderProtocol.METHOD_CLOSE)) {
                 // this can also precede the init request
                 if (! requestId.equals(MetadataProviderProtocol.CLOSE_REQUEST_ID)) {
                     throw new RemotingException("Unexpected id found while parsing a " + MetadataProviderProtocol.METHOD_CLOSE + " request");
@@ -152,31 +153,19 @@ class MetadataProviderServerImpl extends ServerImpl {
                     String proxyVersion = initParams.get(PROTOCOL_VERSION_PARAM);
                     String advertisedVersion = getSupportedVersion(proxyVersion);
                         // this may prevent the initialization
-                    boolean is180 = (advertisedVersion == null);
-                    boolean is182 = (advertisedVersion != null && advertisedVersion.equals("1.8.2"));
-                    
-                    if (is180 || is182) {
-                        if (_closeExpected) {
-                            // WARNING: these versions don't provide for the CLOSE message,
-                            // but we previously asked for the CLOSE message with the RAC message;
-                            // hence we should no longer expect a CLOSE message, but only after
-                            // the client receives this answer, which confirms the protocol;
-                            // however, assuming that the Proxy Adapter only supports these versions,
-                            // we expect that it has ignored our request in the RAC message,
-                            // hence we can already stop expecting a CLOSE message.
-                        }
-                        _closeExpected = false; 
+
+                    // we can support multiple versions based on the request of the counterparty
+                    // and the version for this connection is indicated by advertisedVersion, 
+                    // but currently we only support the latest version
+                    assert (advertisedVersion.equals(_maxVersion));
+
+                    keepaliveHint = initParams.get(KEEPALIVE_HINT_PARAM);
+                    if (keepaliveHint == null) {
+                        keepaliveHint = "0";
                     }
-                    if (! is180) {
-                        // protocol version 1.8.2 and above
-                        keepaliveHint = initParams.get(KEEPALIVE_HINT_PARAM);
-                        if (keepaliveHint == null) {
-                            keepaliveHint = "0";
-                        }
-                        initParams.remove(PROTOCOL_VERSION_PARAM);
-                        initParams.remove(KEEPALIVE_HINT_PARAM);
-                        // the version and keepalive hint are internal parameters, not to be sent to the custom Adapter
-                    }
+                    initParams.remove(PROTOCOL_VERSION_PARAM);
+                    initParams.remove(KEEPALIVE_HINT_PARAM);
+                    // the version and keepalive hint are internal parameters, not to be sent to the custom Adapter
 
                     Iterator<String> paramIter = _adapterParams.keySet().iterator();
                     while (paramIter.hasNext()) {
@@ -184,16 +173,53 @@ class MetadataProviderServerImpl extends ServerImpl {
                         initParams.put(param, _adapterParams.get(param));
                     }
                     _adapter.init(initParams, _adapterConfig);
+                    _adapter.setListener(new MetadataControlListener() {
 
-                    if (! is180) {
-                        // protocol version 1.8.2 and above
-                        Map<String,String> _proxyParams = new HashMap<>();
-                        _proxyParams.put(PROTOCOL_VERSION_PARAM, advertisedVersion);
-                        reply = MetadataProviderProtocol.writeInit(_proxyParams);
-                    } else {
-                        // protocol version 1.8.0
-                        reply = MetadataProviderProtocol.writeInit((Map<String, String>) null);
-                    }
+                        public CompletionStage<Void> forceSessionTermination(String sessionID) {
+                            MetadataControlData mcData = myMetadataControlHelper.prepareForceSessionTermination(sessionID);
+                            if (mcData.request != null) {
+                                sendRemoteRequest(mcData.requestID, mcData.request);
+                            } else {
+                                assert (mcData.future.isCompletedExceptionally());
+                            }
+                            return (CompletionStage<Void>) mcData.future;
+                        }
+
+                        public CompletionStage<Void> forceSessionTermination(String sessionID, int causeCode, String causeMessage) {
+                            MetadataControlData mcData = myMetadataControlHelper.prepareForceSessionTermination(sessionID, causeCode, causeMessage);
+                            if (mcData.request != null) {
+                                sendRemoteRequest(mcData.requestID, mcData.request);
+                            } else {
+                                assert (mcData.future.isCompletedExceptionally());
+                            }
+                            return (CompletionStage<Void>) mcData.future;
+                        }
+
+                        public CompletionStage<Boolean> forceUnsubscription(String sessionID, TableInfo table) {
+                            MetadataControlData mcData = myMetadataControlHelper.prepareForceUnsubscription(sessionID, table.getWinIndex());
+                            if (mcData.request != null) {
+                                sendRemoteRequest(mcData.requestID, mcData.request);
+                            } else {
+                                assert (mcData.future.isCompletedExceptionally());
+                            }
+                            return (CompletionStage<Boolean>) mcData.future;
+                        }
+
+                        public void failure(Exception exception) {
+                            String request;
+                            try {
+                                request = MetadataProviderProtocol.writeFailure(exception);
+                            } catch (RemotingException e) {
+                                // we cannot give up for encoding issues
+                                request = MetadataProviderProtocol.writeFailure();
+                            }
+                            sendRemoteRequest(MetadataProviderProtocol.FAILURE_REQUEST_ID, request);
+                        }
+                    });
+
+                    Map<String,String> _proxyParams = new HashMap<>();
+                    _proxyParams.put(PROTOCOL_VERSION_PARAM, advertisedVersion);
+                    reply = MetadataProviderProtocol.writeInit(_proxyParams);
                 } catch (MetadataProviderException | VersionException | Error | RuntimeException e) {
                     reply = MetadataProviderProtocol.writeInit(e);
                 }
@@ -359,7 +385,9 @@ class MetadataProviderServerImpl extends ServerImpl {
                     public String doWork() throws RemotingException {
                         try {
                             _adapter.notifyNewSession(notifyNewSessionData.user, notifyNewSessionData.session, notifyNewSessionData.clientContext);
-                            return MetadataProviderProtocol.writeNotifyNewSession();
+                            SessionData sessionData = new SessionData();
+                            sessionData.timeToLiveSeconds = _adapter.getSessionTimeToLive(notifyNewSessionData.user, notifyNewSessionData.session);
+                            return MetadataProviderProtocol.writeNotifyNewSession(sessionData);
                         } catch (CreditsException | NotificationException | Error | RuntimeException e) {
                             return MetadataProviderProtocol.writeNotifyNewSession(e);
                         }
@@ -385,7 +413,14 @@ class MetadataProviderServerImpl extends ServerImpl {
                     public String doWork() throws RemotingException {
                         try {
                             _adapter.notifyNewTables(notifyNewTablesData.user, notifyNewTablesData.session, notifyNewTablesData.tables);
-                            return MetadataProviderProtocol.writeNotifyNewTables();
+                            TableData tableData = new TableData();
+                            if (notifyNewTablesData.tables.length == 1) {
+                                tableData.enableUnsubscription = _adapter.enableTableUnsubscription(notifyNewTablesData.session, notifyNewTablesData.tables);
+                            } else {
+                                tableData.enableUnsubscription = false; // no point asking, as the Server would refuse anyway
+                            }
+                            tableData.wantsFinalStatistics = _adapter.wantsFinalTableStatistics(notifyNewTablesData.session, notifyNewTablesData.tables);
+                            return MetadataProviderProtocol.writeNotifyNewTables(tableData);
                         } catch (NotificationException | CreditsException | Error | RuntimeException e) {
                             return MetadataProviderProtocol.writeNotifyNewTables(e);
                         }
@@ -444,6 +479,24 @@ class MetadataProviderServerImpl extends ServerImpl {
                     }
                 });
 
+            } else if (method.equals(MetadataProviderProtocol.METHOD_FORCE_SESSION_TERMINATION)) {
+                Callable<Void> outcome = MetadataProviderProtocol.readForceSessionTermination(request.substring(sep + 1));
+                try {
+                    outcome.call();
+                    myMetadataControlHelper.onResponse(requestId, null);
+                } catch (Exception e) {
+                    myMetadataControlHelper.onErrorResponse(requestId, e);
+                }
+
+            } else if (method.equals(MetadataProviderProtocol.METHOD_FORCE_UNSUBSCRIPTION)) {
+                Callable<Boolean> outcome = MetadataProviderProtocol.readForceUnsubscription(request.substring(sep + 1));
+                try {
+                    Boolean done = outcome.call();
+                    myMetadataControlHelper.onResponse(requestId, done);
+                } catch (Exception e) {
+                    myMetadataControlHelper.onErrorResponse(requestId, e);
+                }
+
             } else {
                 _log.warn("Discarding unknown request: " + request);
             }
@@ -478,6 +531,16 @@ class MetadataProviderServerImpl extends ServerImpl {
         }
         if (currRequestReceiver != null) {
             currRequestReceiver.sendReply(requestId, reply, _log);
+        }
+    }
+    
+    private void sendRemoteRequest(String requestId, String reply) {
+        RequestReceiver currRequestReceiver;
+        synchronized (this) {
+            currRequestReceiver = _requestReceiver;
+        }
+        if (currRequestReceiver != null) {
+            currRequestReceiver.sendRemoteRequest(requestId, reply, _log);
         }
     }
     

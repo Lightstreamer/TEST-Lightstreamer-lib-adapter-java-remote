@@ -272,7 +272,7 @@ public abstract class MetadataProviderAdapter implements MetadataProvider {
 
     /** 
      Called by Lightstreamer Kernel through the Remote Server to check
-     that a User is enabled to add some Tables (i.e. Subscriptions) to a push Session. 
+     that a User is enabled to add some Tables (i&#46;e&#46;: Subscriptions) to a push Session. 
      In this default implementation, the Metadata Adapter poses no restriction. Unless the 
      WantsTablesNotification method is overridden, this method will never be called by Lightstreamer Kernel.
      

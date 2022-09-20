@@ -19,7 +19,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 import com.lightstreamer.log.LogManager;
 import com.lightstreamer.log.Logger;
@@ -41,10 +41,7 @@ class RequestReceiver {
     public RequestReceiver(String name, InputStream requestStream, OutputStream replyStream, int keepaliveMillis, RequestListener requestListener, ExceptionListener exceptionListener) {
         _name = name;
 
-        try {
-            _reader = new LineNumberReader(new InputStreamReader(requestStream,"UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-        }
+        _reader = new LineNumberReader(new InputStreamReader(requestStream, StandardCharsets.UTF_8));
 
         _replySender = new NotifySender(name, replyStream, true, keepaliveMillis, exceptionListener);
 
@@ -134,6 +131,18 @@ class RequestReceiver {
 
         msg = identifiedReply.toString();
         properLogger.debug("Sending unsolicited message");
+
+        _replySender.sendNotify(msg);
+    }
+
+    public final void sendRemoteRequest(String requestId, String msg, Logger properLogger) {
+        StringBuilder identifiedReply = new StringBuilder();
+        identifiedReply.append(requestId);
+        identifiedReply.append(RemotingProtocol.SEP);
+        identifiedReply.append(msg);
+
+        msg = identifiedReply.toString();
+        properLogger.debug("Sending remote request: " + requestId);
 
         _replySender.sendNotify(msg);
     }

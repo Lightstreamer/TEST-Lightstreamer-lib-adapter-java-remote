@@ -23,11 +23,14 @@ class BaseProtocol extends RemotingProtocol {
     public static final String METHOD_KEEPALIVE= "KEEPALIVE";
     public static final String METHOD_REMOTE_CREDENTIALS= "RAC";
     public static final String METHOD_CLOSE= "CLOSE";
+    public static final String METHOD_FAILURE = "FAL";
 
     public static final String KEY_CLOSE_REASON = "reason";
 
     public static final String AUTH_REQUEST_ID = "1";
     public static final String CLOSE_REQUEST_ID = "0";
+    public static final String FAILURE_REQUEST_ID = "2"; // unused by the Server
+    public static final long FIRST_REMOTE_REQUEST_ID = 100;
 
     // ////////////////////////////////////////////////////////////////////////
     // REMOTE CREDENTIALS
@@ -44,11 +47,11 @@ class BaseProtocol extends RemotingProtocol {
             sb.append(SEP);
             sb.append(TYPE_STRING);
             sb.append(SEP);
-            sb.append(encodeString(entry.getKey()));
+            sb.append(encodeStringOld(entry.getKey()));
             sb.append(SEP);
             sb.append(TYPE_STRING);
             sb.append(SEP);
-            sb.append(encodeString(entry.getValue()));
+            sb.append(encodeStringOld(entry.getValue()));
         }
 
         return sb.toString();
@@ -76,7 +79,7 @@ class BaseProtocol extends RemotingProtocol {
 
                 case TYPE_STRING:
                     val = tokenizer.nextToken();
-                    headerName = decodeString(val);
+                    headerName = decodeStringOld(val);
                     break;
 
                 default:
@@ -89,7 +92,7 @@ class BaseProtocol extends RemotingProtocol {
 
                 case TYPE_STRING:
                     val = tokenizer.nextToken();
-                    headerValue = decodeString(val);
+                    headerValue = decodeStringOld(val);
                     break;
 
                 default:
@@ -105,6 +108,33 @@ class BaseProtocol extends RemotingProtocol {
         }
 
         return parameters;
+    }
+
+    // ////////////////////////////////////////////////////////////////////////
+    // FAILURE
+
+    public static String writeFailure(Throwable exception) throws RemotingException {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(METHOD_FAILURE);
+        sb.append(SEP);
+        sb.append(TYPE_EXCEPTION);
+        sb.append(SEP);
+        sb.append(encodeString(exception.getMessage()));
+
+        return sb.toString();
+    }
+
+    public static String writeFailure() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(METHOD_FAILURE);
+        sb.append(SEP);
+        sb.append(TYPE_EXCEPTION);
+        sb.append(SEP);
+        sb.append(VALUE_NULL);
+
+        return sb.toString();
     }
 
 }

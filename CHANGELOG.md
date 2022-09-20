@@ -1,5 +1,55 @@
 # Lightstreamer Changelog - SDK for Java Remote Adapters
 
+## [1.6.0] (20-09-2022)
+
+*Compatible with Adapter Remoting Infrastructure since Server version 7.3.*  
+*Compatible with code developed with the previous version*  
+
+**New Features**
+
+- Introduced the declareFieldDiffOrder method in the ItemEventListener class.
+Together with the new DiffAlgorithm class, it allows a Remote Data Adapter to specify which algorithms, and in which order,
+the Server should try, in order to compute the difference between a value and the previous one in order to send the client
+this difference, for "delta delivery" purpose, by leveraging the extensions introduced in Server version 7.3.0.<br/>
+Currently, the following options are available:
+	- JSON Patch, which the Server can use when the involved values are valid JSON representations.
+	- Google's "diff-match-patch" algorithm (the result is then serialized with the custom "TLCP-diff" format).<br/>
+**COMPATIBILITY NOTE:** *Invoking the new method is optional and by default no algorithm is tried by the Server; hence there are no backward compatibility issues.*
+
+- Extended the MetadataProvider interface with a setListener method. The new listener, provided by the Kernel just after initialization, adds support for operations requested by Metadata Adapter code.
+In particular, it is now possible to enforce the termination of a Session, to enforce an unsubscription on behalf or the client, and to notify the Kernel of a fatal issue in the Adapter.
+Look for the new MetadataControlListener class in the docs for details.<br/>
+**COMPATIBILITY NOTE:** *The new method has a default implementation which ignores the listener; so both source and binary compatibility with existing Adapters is guaranteed.*
+
+- Extended the TableInfo bean class with new getters that provide further information on the involved subscription. Added, in particular, getDataAdapter, getSubscribedItems, and getSubscriptionStatistics;
+the latter are only available at subscription close. See TableInfo and look for the new SubscriptionStatistics class in the docs for details.
+Note that the change also involves the TableInfo constructor.<br/>
+**COMPATIBILITY NOTE:** *Existing Adapter code using the constructor would not be compatible with the new jar; however, the constructor is just provided for descriptive purpose and was never meant to be used by Adapter code.*
+
+- Extended the MetadataProvider interface with methods that are meant to enable some of the new features, to save resources as long as they are not needed. 
+See enableTableUnsubscription and wantsFinalTableStatistics in the docs for details.
+**COMPATIBILITY NOTE:** *The new method have a default implementation which doesn't enable the features; so both source and binary compatibility with existing Adapters is guaranteed.*
+
+- Extended the MetadataProvider interface with a getSessionTimeToLive method, which will be invoked by the Kernel upon session creation.
+This will allow the Adapter to specify a time-to-live for the session, which will be enforced by the Server.<br/>
+**COMPATIBILITY NOTE:** *The new method has a default implementation which doesn't set any time-to-live; so both source and binary compatibility with existing Adapters is guaranteed.*
+
+**Improvements**
+
+- Modified the String encoding according to ARI protocol version 1.9.0. This ensures a more efficient transport for almost all messages.
+The encoding change also extends to item update values supplied as byte arrays.
+As a consequence, the use of byte arrays to provide field values has become pointless, and, for this reason it has been deprecated for discontinuation in a future release.
+
+- Added the ResourceUnavailableException, as a type of AccessException, to provide the possibility to have the Server instruct the client to retry upon an error which prevents notifyUser from working correctly.
+
+- Fixed a few short method descriptions in the javadoc, which were truncated.
+
+- Deprecated the "update" methods of the ItemEventListener class that lean on the ItemEvent and IndexedItemEvent classes, which have been deprecated as well.
+In fact, these alternatives to the "update" method based on Map were not very useful.
+In particular, the documentation of the ItemEvent and IndexedItemEvent classes wrongly mentioned some benefits only pertaining to in-process Adapters.
+
+- Removed a wrong documentation note for the ItemEventListener class. Actually, the objects sent to the various calls are not retained.
+
 ## [1.5.0] (09-09-2021)
 
 *Compatible with Adapter Remoting Infrastructure since Server version 7.0.*  

@@ -16,7 +16,7 @@ package com.lightstreamer.adapters.remote;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -53,10 +53,8 @@ class NotifySender {
     public NotifySender(String name, OutputStream notifyStream, boolean repliesNotNotifies, int keepaliveMillis, ExceptionListener exceptionListener) {
         _name = name;
 
-        try {
-            _writer = new OutputStreamWriter(notifyStream, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-        }
+        _writer = new OutputStreamWriter(notifyStream, StandardCharsets.UTF_8);
+
         _repliesNotNotifies = repliesNotNotifies;
         _keepaliveMillis = keepaliveMillis;
 

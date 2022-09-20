@@ -90,6 +90,20 @@ public interface MetadataProvider {
     void init(@Nonnull Map<String,String> parameters, @Nullable String configFile) throws MetadataProviderException;
     
     /**
+     * Called by the Remote Server to provide a listener to receive
+     * requests about sessions and any asynchronous severe error notification.
+     * If these features are not needed, the method can be left unimplemented
+     * (sticking to its default implementation).
+     * The listener is set after init and before any other method is called
+     * and it is never changed.
+     *
+     * @param listener a listener.
+     */
+    default void setListener(@Nonnull MetadataControlListener listener) {
+        // we will do without the listener
+    }
+
+    /**
      * Called by Lightstreamer Kernel through the Remote Server
      * as a preliminary check that a user is
      * enabled to make Requests to the related Data Providers.
@@ -119,6 +133,9 @@ public interface MetadataProvider {
      * and the value is a unique id assigned to the client request.
      * @throws AccessException if the User name is not known or the supplied
      * password is not correct.
+     * <BR>If the User credentials cannot be validated because of a temporary
+     * lack of resources, then a {@link ResourceUnavailableException} can be
+     * thrown. This will instruct the client to retry in short time.
      * @throws CreditsException if the User is known but is not enabled to
      * make further Requests at the moment.
      * 
@@ -158,6 +175,9 @@ public interface MetadataProvider {
      * authenticated itself or the authentication has failed.
      * @throws AccessException if the User name is not known or the supplied
      * password is not correct.
+     * <BR>If the User credentials cannot be validated because of a temporary
+     * lack of resources, then a {@link ResourceUnavailableException} can be
+     * thrown. This will instruct the client to retry in short time.
      * @throws CreditsException if the User is known but is not enabled to
      * make further Requests at the moment.
      * 
@@ -283,7 +303,7 @@ public interface MetadataProvider {
      * requested with publishing Mode MERGE, DISTINCT and COMMAND (in the latter case, the frequency 
      * limitation applies to the UPDATE events for each single key). If an Item is requested with publishing 
      * Mode MERGE, DISTINCT or COMMAND and unfiltered dispatching has been specified, then returning any 
-     * limited maximum frequency will cause the refusal of the request by the Kernel. <BR>
+     * limited maximum frequency will cause the refusal of the request by Lightstreamer Kernel. <BR>
      * This method runs in the Server thread pool specific
      * for the Data Adapter that supplies the involved items, if defined.
      * 
@@ -361,7 +381,7 @@ public interface MetadataProvider {
      * that Item. Moreover, because this filtering is made without buffers, the frequency set should be far 
      * greater than the ItemUpdate frequencies allowed for that Item for which buffering of event bursts is 
      * desired. If an Item is requested with publishing Mode MERGE or DISTINCT and unfiltered dispatching, 
-     * then specifying any limited source frequency will cause the refusal of the request by the Kernel. 
+     * then specifying any limited source frequency will cause the refusal of the request by Lightstreamer Kernel. 
      * This feature is just for ItemEventBuffers protection against Items with a very fast flow on the Data 
      * Adapter and a very slow flow allowed to the Clients. If this is the case, but just a few Clients need 
      * a fast or unfiltered flow for the same MERGE or DISTINCT Item, the use of two differently named Items 
@@ -476,6 +496,25 @@ public interface MetadataProvider {
      */
     void notifyNewSession(@Nullable String user, @Nonnull String sessionID, @Nonnull Map<String,String> clientContext) throws CreditsException, NotificationException;
     
+    /**
+     * Called by Lightstreamer Kernel through the Remote Server to ask
+     * for an optional time-to-live setting for a session just started.
+     * If this setting is not needed, the method can be left unimplemented
+     * (sticking to its default implementation, which poses no limit).
+     * <BR>If the session is terminated due to this setting, the originating
+     * client will receive the notification of the termination according with the API
+     * in use, together with a proper cause code.
+     * 
+     * @param user A User name.
+     * @param session A session ID.
+     * @return The time-to-live setting to be applied to the specified session,
+     * as a positive number of seconds. If zero or negative, no time-to-live
+     * limit will be applied.
+     */
+    default int getSessionTimeToLive(@Nullable String user, @Nonnull String session) {
+        return 0;
+    }
+
     /** 
      * Called by Lightstreamer Kernel through the Remote Server to notify
      * the Metadata Adapter that a push Session has been closed. <BR>
@@ -498,21 +537,21 @@ public interface MetadataProvider {
     /** 
      * Called by Lightstreamer Kernel through the Remote Server to know
      * whether the Metadata Adapter must or must not be notified any time a Table
-     * (i.e. Subscription) is added or removed from a push Session owned by a supplied User. If this method returns 
+     * (i&#46;e&#46;: Subscription) is added or removed from a push Session owned by a supplied User. If this method returns 
      * false, the methods NotifyNewTables and NotifyTablesClose will never be called for this User, saving 
      * some processing time. In this case, the User will be allowed to add to his Sessions any Tables
-     * (i.e. Subscriptions) he wants. <BR>
+     * (i&#46;e&#46;: Subscriptions) he wants. <BR>
      * This method runs in the Server authentication thread pool, if defined.
      * 
      * @param user A User name.
-     * @return True if the Metadata Adapter must be notified any time a Table (i.e. Subscription)
+     * @return True if the Metadata Adapter must be notified any time a Table (i&#46;e&#46;: Subscription)
      * is added or removed from a Session owned by the User.
     */
     boolean wantsTablesNotification(@Nullable String user);
 
     /** 
      * Called by Lightstreamer Kernel through the Remote Server to check
-     * that a User is enabled to add some Tables (i.e. Subscriptions) to a push Session. 
+     * that a User is enabled to add some Tables (i&#46;e&#46;: Subscriptions) to a push Session. 
      * If the check succeeds, this also notifies the Metadata Adapter that the Tables are being added to the 
      * Session. <BR>
      * The method is invoked only if enabled for the User through wantsTablesNotification. <BR>
@@ -522,23 +561,71 @@ public interface MetadataProvider {
      * @param user A User name.
      * @param sessionID The ID of a Session owned by the User.
      * @param tables An array of TableInfo instances, each of them containing the details of a Table 
-     * (i.e. Subscription) to be added to the Session.
-     * The elements in the array represent Tables (i.e.: Subscriptions) whose
+     * (i&#46;e&#46;: Subscription) to be added to the Session.
+     * The elements in the array represent Tables (i&#46;e&#46;: Subscriptions) whose
      * subscription is requested atomically by the client. A single element
      * should be expected in the array, unless clients based on a very old
      * version of a client library or text protocol may be in use.
-     * @exception CreditsException in case the User is not allowed to add the specified Tables (i.e. Subscriptions) to the Session.
-     * 
+     * @exception CreditsException in case the User is not allowed to add the specified Tables (i&#46;e&#46;: Subscriptions) to the Session.
      * @exception NotificationException in case something is wrong in the
      * parameters, such as the ID of a Session that is not currently open
-     * or inconsistent information about a Table (i.e. Subscription).
+     * or inconsistent information about a Table (i&#46;e&#46;: Subscription).
      * 
     */
     void notifyNewTables(@Nullable String user, @Nonnull String sessionID, @Nonnull TableInfo[] tables) throws NotificationException, CreditsException;
 
     /** 
+     * Called by the Remote Server to know whether the Metadata Adapter wants to have
+     * the possibility to force the unsubscription
+     * (through {@link MetadataControlListener#forceUnsubscription(String, TableInfo)})
+     * of some Tables (i&#46;e&#46;: Subscriptions) just being subscribed. In fact, since
+     * enabling this possibility requires added resources on the Proxy Adapter,
+     * this should be explicitly requested for every subscription.
+     * Hence this method is invoked just after a successful invocation of
+     * {@link #notifyNewTables(String, String, TableInfo[])}, and provides the same
+     * sessionID and tables arguments.
+     * If unsubscription support is not needed, the method can be left unimplemented
+     * (sticking to its default implementation).
+     * <BR>Note: the unsubscription is supported only if the array of TableInfo
+     * has a single element; hence this method is invoked only in this case.
+     * However, the case of arrays with multiple elements is only possible when
+     * extremely old client SDKs are in use.
+     * 
+     * @param sessionID The ID of a Session 
+     * @param tables An array of TableInfo instances, each of them containing
+     * the details of a Table (i&#46;e&#46;: Subscription) being added to the Session.
+     * Actually, the length of the array will be always 1.
+     * @return True if the Metadata Adapter wants to have the possibility to force
+     * the unsubscription of these Tables (i&#46;e&#46;: Subscriptions).
+    */
+    default boolean enableTableUnsubscription(@Nonnull String sessionID, @Nonnull TableInfo[] tables) {
+        return false;
+    }
+
+    /** 
+     * Called by the Remote Server to know whether the Metadata Adapter wants to
+     * receive (in {@link #notifyTablesClose(String, TableInfo[])}) final traffic
+     * statistics on the Items of some Tables (i&#46;e&#46;: Subscriptions) just being
+     * subscribed.
+     * Hence this method is invoked just after a successful invocation of
+     * {@link #notifyNewTables(String, String, TableInfo[])}, and provides the same
+     * sessionID and tables arguments.
+     * If traffic statistics are not needed, the method can be left unimplemented
+     * (sticking to its default implementation).
+     * 
+     * @param sessionID The ID of a Session 
+     * @param tables An array of TableInfo instances, each of them containing
+     * the details of a Table (i&#46;e&#46;: Subscription) being added to the Session.
+     * @return True if the Metadata Adapter wants to receive final traffic
+     * statistics on the Items of these Tables (i&#46;e&#46;: Subscriptions).
+    */
+    default boolean wantsFinalTableStatistics(@Nonnull String sessionID, @Nonnull TableInfo[] tables) {
+        return false;
+    }
+
+    /** 
      * Called by Lightstreamer Kernel through the Remote Server to notify
-     * the Metadata Adapter that some Tables (i.e. Subscriptions) have been removed from
+     * the Metadata Adapter that some Tables (i&#46;e&#46;: Subscriptions) have been removed from
      * a push Session. <BR>
      * The method is invoked only if enabled for the User through wantsTablesNotification. <BR>
      * This method is called by the Server asynchronously
@@ -546,14 +633,14 @@ public interface MetadataProvider {
      * 
      * @param sessionID A Session ID.
      * @param tables An array of TableInfo instances, each of them containing the details of a Table 
-     * (i.e. Subscription) that has been removed from the Session.
+     * (i&#46;e&#46;: Subscription) that has been removed from the Session.
      * The supplied array is in 1:1 correspondance with the array supplied by
      * notifyNewTables in a previous call;
      * the correspondance can be recognized by matching the getWinIndex return value
      * of the included TableInfo objects (if multiple objects are included,
      * it must be the same for all of them).
      * @exception NotificationException in case something is wrong in the parameters, such as the ID of a Session 
-     * that is not currently open or a Table (i.e. Subscription) that is not contained in the Session.
+     * that is not currently open or a Table (i&#46;e&#46;: Subscription) that is not contained in the Session.
      * 
     */
     void notifyTablesClose(@Nonnull String sessionID, @Nonnull TableInfo[] tables) throws NotificationException;
@@ -564,7 +651,7 @@ public interface MetadataProvider {
      * a prerequisite for all MPN operations, including the activation of a
      * subscription, the deactivation of a subscription, the change of a device
      * token, etc. Some of these operations have a subsequent specific notification,
-     * i.e. notifyMpnSubscriptionActivation and notifyMpnDeviceTokenChange. 
+     * i&#46;e&#46; notifyMpnSubscriptionActivation and notifyMpnDeviceTokenChange. 
      * <BR>
      * Take particular precautions when authorizing device access, if
      * possible ensure the user is entitled to the specific platform, 
@@ -614,13 +701,13 @@ public interface MetadataProvider {
      * any association between this Session ID and this Push Notification
      * subscription should be considered temporary.
      * @param table A TableInfo instance, containing the details of a Table 
-     * (i.e.: Subscription) for which Push Notification have to be activated.
+     * (i&#46;e&#46;: Subscription) for which Push Notification have to be activated.
      * @param mpnSubscription An MpnSubscriptionInfo instance, containing the
      * details of a Push Notification to be activated.
      * @exception CreditsException if the User is not allowed to activate the
      * specified Push Notification in the Session.
      * @exception NotificationException if something is wrong in the parameters,
-     * such as inconsistent information about a Table (i.e.: Subscription) or 
+     * such as inconsistent information about a Table (i&#46;e&#46;: Subscription) or 
      * a Push Notification.
     */
     void notifyMpnSubscriptionActivation(@Nullable String user, @Nonnull String sessionID, @Nonnull TableInfo table, @Nonnull MpnSubscriptionInfo mpnSubscription) throws CreditsException, NotificationException;

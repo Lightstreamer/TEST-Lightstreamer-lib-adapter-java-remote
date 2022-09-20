@@ -21,6 +21,10 @@ import java.util.StringTokenizer;
 
 class DataProviderProtocol extends BaseProtocol {
 
+    public static final char TYPE_DIFF_ALGORITHMS= 'F';
+    public static final char TYPE_ALGORITHM_JSONPATCH= 'J';
+    public static final char TYPE_ALGORITHM_DIFFMATCHPATCH= 'M'; // corresponding to the TLCP-diff format
+
     public static final char SUBTYPE_DATAPROVIDER_EXCEPTION = 'D';
     public static final char SUBTYPE_FAILURE_EXCEPTION = 'F';
     public static final char SUBTYPE_SUBSCRIPTION_EXCEPTION = 'U';
@@ -28,11 +32,9 @@ class DataProviderProtocol extends BaseProtocol {
     public static final String METHOD_DATA_INIT = "DPI";
     public static final String METHOD_SUBSCRIBE = "SUB";
     public static final String METHOD_UNSUBSCRIBE = "USB";
-    public static final String METHOD_FAILURE = "FAL";
     public static final String METHOD_END_OF_SNAPSHOT = "EOS";
-    // public static final String METHOD_UPDATE_BY_INDEXED_EVENT= "UD1";
-    // public static final String METHOD_UPDATE_BY_EVENT= "UD2";
     public static final String METHOD_UPDATE_BY_MAP = "UD3";
+    public static final String METHOD_DECLARE_FIELD_DIFF_ORDER = "DFD";
     public static final String METHOD_CLEAR_SNAPSHOT = "CLS";
 
     // ////////////////////////////////////////////////////////////////////////
@@ -59,7 +61,7 @@ class DataProviderProtocol extends BaseProtocol {
 
                 case TYPE_STRING:
                     val = tokenizer.nextToken();
-                    headerName = decodeString(val);
+                    headerName = decodeStringOld(val);
                     
                     break;
 
@@ -76,7 +78,7 @@ class DataProviderProtocol extends BaseProtocol {
                 case TYPE_STRING:
                     val = tokenizer.nextToken();
                     
-                    headerValue = decodeString(val);
+                    headerValue = decodeStringOld(val);
                  
                     break;
 
@@ -111,11 +113,11 @@ class DataProviderProtocol extends BaseProtocol {
                 sb.append(SEP);
                 sb.append(TYPE_STRING);
                 sb.append(SEP);
-                sb.append(encodeString(entry.getKey()));
+                sb.append(encodeStringOld(entry.getKey()));
                 sb.append(SEP);
                 sb.append(TYPE_STRING);
                 sb.append(SEP);
-                sb.append(encodeString(entry.getValue()));
+                sb.append(encodeStringOld(entry.getValue()));
             }
         } else {
             // protocol version 1.8.0
@@ -139,7 +141,7 @@ class DataProviderProtocol extends BaseProtocol {
             // VersionException possible here, but used internally and not specified in the protocol
         }
         sb.append(SEP);
-        sb.append(encodeString(exception.getMessage()));
+        sb.append(encodeStringOld(exception.getMessage()));
 
         return sb.toString();
     }
@@ -252,21 +254,6 @@ class DataProviderProtocol extends BaseProtocol {
     }
 
     // ////////////////////////////////////////////////////////////////////////
-    // FAILURE
-
-    public static String writeFailure(Throwable exception) throws RemotingException {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append(METHOD_FAILURE);
-        sb.append(SEP);
-        sb.append(TYPE_EXCEPTION);
-        sb.append(SEP);
-        sb.append(encodeString(exception.getMessage()));
-
-        return sb.toString();
-    }
-
-    // ////////////////////////////////////////////////////////////////////////
     // END OF SNAPSHOT
 
     public static String writeEndOfSnapshot(String itemName, String requestID) throws RemotingException {
@@ -332,9 +319,9 @@ class DataProviderProtocol extends BaseProtocol {
 
             } else if (value instanceof byte []) {
                 sb.append(SEP);
-                sb.append(TYPE_BYTES);
+                sb.append(TYPE_STRING);
                 sb.append(SEP);
-                sb.append(encodeBytes((byte []) value));
+                sb.append(encodeBytesAsString((byte []) value));
 
             } else {
                 throw new RemotingException("Found value '" + value.toString() + "' of an unsupported type while building a " + METHOD_UPDATE_BY_MAP + " request");
@@ -389,9 +376,9 @@ class DataProviderProtocol extends BaseProtocol {
 
             } else if (value instanceof byte[]) {
                 sb.append(SEP);
-                sb.append(TYPE_BYTES);
+                sb.append(TYPE_STRING);
                 sb.append(SEP);
-                sb.append(encodeBytes((byte []) value));
+                sb.append(encodeBytesAsString((byte []) value));
 
             } else {
                 throw new RemotingException("Found value '" + value.toString() + "' of an unsupported type while building a " + METHOD_UPDATE_BY_MAP + " request");
@@ -443,9 +430,9 @@ class DataProviderProtocol extends BaseProtocol {
 
             }  else if (value instanceof byte []) {
                 sb.append(SEP);
-                sb.append(TYPE_BYTES);
+                sb.append(TYPE_STRING);
                 sb.append(SEP);
-                sb.append(encodeBytes((byte []) value));
+                sb.append(encodeBytesAsString((byte []) value));
 
             } else {
                 throw new RemotingException("Found value '" + value.toString() + "' of an unsupported type while building a " + METHOD_UPDATE_BY_MAP + " request");
@@ -473,4 +460,67 @@ class DataProviderProtocol extends BaseProtocol {
 
         return sb.toString();
     }
+
+    // ////////////////////////////////////////////////////////////////////////
+    // DECLARE FIELD DIFF ORDER (String itemName, Map algs)
+
+    public static String writeDeclareFieldDiffOrder(String itemName, String requestID, Map<String,DiffAlgorithm[]> algorithmsMap) throws RemotingException {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(METHOD_DECLARE_FIELD_DIFF_ORDER);
+        sb.append(SEP);
+        sb.append(TYPE_STRING);
+        sb.append(SEP);
+        sb.append(encodeString(itemName));
+        sb.append(SEP);
+        sb.append(TYPE_STRING);
+        sb.append(SEP);
+        sb.append(requestID);
+
+        for (String name : algorithmsMap.keySet()) {
+            sb.append(SEP);
+            sb.append(TYPE_STRING);
+            sb.append(SEP);
+            sb.append(encodeString(name));
+
+            DiffAlgorithm[] algs = algorithmsMap.get(name);
+            sb.append(SEP);
+            sb.append(TYPE_DIFF_ALGORITHMS);
+            sb.append(SEP);
+            sb.append(encodeAlgorithms(algs));
+        }
+
+        return sb.toString();
+    }
+
+    // ////////////////////////////////////////////////////////////////////////
+    // Internal methods
+
+    protected static String encodeAlgorithms(DiffAlgorithm[] algs) throws RemotingException {
+        if (algs == null) {
+            return VALUE_NULL;
+        }
+        if (algs.length == 0) {
+            return VALUE_EMPTY;
+        }
+
+        StringBuilder encodedAlgs = new StringBuilder();
+
+        for (int i = 0; i < algs.length; i++) {
+            switch (algs[i]) {
+                case JSONPATCH:
+                    encodedAlgs.append(TYPE_ALGORITHM_JSONPATCH);
+                    break;
+                case DIFF_MATCH_PATCH:
+                    encodedAlgs.append(TYPE_ALGORITHM_DIFFMATCHPATCH);
+                    break;
+                default:
+                    // null?
+                    throw new RemotingException("Unknown diff algorithm '" + algs[i].toString() + "' found while encoding Diff Algorithms array");
+            }
+        }
+
+        return encodedAlgs.toString();
+    }
+
 }

@@ -22,11 +22,14 @@ import javax.annotation.Nullable;
 /** 
  * Provides to the Data Adapter a base interface for creating Item Events
  * in order to send updates to Lightstreamer Kernel.
- * An Item Event object contains the new values and, in some cases, the current 
- * values of the Fields of an Item. The interfaces IndexedItemEvent and java.util.Map may 
- * also be used to define events. Events of all these kinds may be freely mixed, even if they belong to the 
- * same Item. All implementation methods should be nonblocking.
+ * An ItemEvent object contains the new values and, in some cases, the current 
+ * values of the Fields of an Item. All implementation methods should be nonblocking.
+ *
+ * @deprecated The class is deprecated. Use a Map and
+ * {@link ItemEventListener#update(String, java.util.Map, boolean)}
+ * to supply field values. 
  */
+@Deprecated
 public interface ItemEvent {
 
     /** 
@@ -39,16 +42,13 @@ public interface ItemEvent {
 
     /** 
      * Returns the value of a named Field (null is a legal value too). Returns null if the Field is not 
-     * reported in the Item Event. The value can be expressed as either a String or a byte array, the latter 
-     * case being the most efficient, though restricted to the ISO-8859-1 (ISO-LATIN-1) character set. 
-     * Lightstreamer Kernel, through the Remote Server, will call this method
-     * at most once for each Field (unless events logging is 
-     * enabled) and may not call this method at all for some Fields. So, if performing any data conversion is 
-     * required in order to extract Field values, it may be convenient to do it on demand rather than doing 
-     * it in advance.
+     * reported in the Item Event. The value should be expressed as a String;
+     * the use of a byte array, to supply a string encoded in the ISO-8859-1 (ISO-LATIN-1)
+     * character set, is also allowed, but it has been deprecated.
+     * The Remote Server, will call this method only once for each Field.
      * 
      * @param name A Field name.
-     * @return A String or a byte array containing the Field value, or null.
+     * @return A String containing the Field value, or null. A byte array is also accepted, but deprecated.
      */
 	@Nullable
     Object getValue(@Nonnull String name);

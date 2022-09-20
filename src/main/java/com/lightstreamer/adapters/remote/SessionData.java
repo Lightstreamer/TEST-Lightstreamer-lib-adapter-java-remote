@@ -13,19 +13,6 @@
  */
 package com.lightstreamer.adapters.remote;
 
-import javax.annotation.Nullable;
-
-/**  
- * Base class for all exceptions directly thrown by the Data Adapter.
- */
-public class DataException extends Exception {
-
-    DataException(@Nullable String message, @Nullable Exception innerException) {
-        super(message, innerException);
-    }
-
-    DataException(@Nullable String message) {
-        super(message);
-    }
-
+class SessionData {
+    public int timeToLiveSeconds;
 }
