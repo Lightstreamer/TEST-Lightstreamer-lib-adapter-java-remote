@@ -144,7 +144,7 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
         
         if (proxyVersion == null) {
             // protocol version 1.8.0 or earlier, not supported and not negotiable
-            throw new VersionException("Usupported protocol version");
+            throw new VersionException("Unsupported protocol version");
         } else {
             // protocol version specified in proxyVersion (must be 1.8.2 or later);
             // if we supported a lower version, we could advertise it

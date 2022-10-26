@@ -18,7 +18,7 @@ import javax.annotation.Nullable;
 
 /** 
  * Used by MetadataProvider to provide value objects to the calls
- * to methods NotifyNewTables, NotifyTablesClose, and
+ * to methods notifyNewTables, notifyTablesClose, and
  * notifyMpnSubscriptionActivation.
  * The attributes of every Table (i&#46;e&#46;: Subscription) to be added or removed
  * to a Session have to be written to a TableInfo instance.
@@ -76,8 +76,8 @@ public class TableInfo {
      * Note that, for clients based on a very old version of a client library
      * or text protocol, subscription requests may involve multiple Tables
      * (i&#46;e&#46;: Subscriptions), hence multiple objects of this type can be supplied
-     * in a single array by MetadataProvider through NotifyNewTables and
-     * NotifyTablesClose. In this case, the value returned
+     * in a single array by MetadataProvider through notifyNewTables and
+     * notifyTablesClose. In this case, the value returned
      * is the same for all these objects and the single Tables (i&#46;e&#46;: Subscriptions)
      * can be identified by their relative position in the array.
      * 
