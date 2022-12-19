@@ -172,12 +172,12 @@ public abstract class Server {
     }
 
     /** 
-     * Sets the stream used by the Remote Adapter in order to send asyncronous
-     * data to the Remote Adapter. Currently not used and not needed
+     * Sets the stream used by the Remote Data Adapter in order to send asynchronous
+     * data to the Proxy Adapter. Currently not used and not needed
      * by the Remote Metadata Adapter.
      * 
-     * @param outputStream the stream used by the Remote Adapter in order to send asyncronous
-     * data to the Remote Adapter. 
+     * @param outputStream the stream used by the Remote Adapter in order to send asynchronous
+     * data to the Proxy Adapter. 
      */
     public final void setNotifyStream(@Nonnull OutputStream outputStream) {
         if (startedOnce) {
@@ -186,12 +186,12 @@ public abstract class Server {
         _impl.setNotifyStream(outputStream);
     }
     /** 
-     * Gets the stream used by the Remote Adapter in order to send asyncronous
-     * data to the Remote Adapter. Currently not used and not needed
+     * Gets the stream used by the Remote Adapter in order to send asynchronous
+     * data to the Proxy Adapter. Currently not used and not needed
      * by the Remote Metadata Adapter.
      * 
-     * @return the stream used by the Remote Adapter in order to send asyncronous
-     * data to the Remote Adapter. 
+     * @return the stream used by the Remote Adapter in order to send asynchronous
+     * data to the Proxy Adapter. 
      */
     @Nonnull
     public final OutputStream getNotifyStream() {
