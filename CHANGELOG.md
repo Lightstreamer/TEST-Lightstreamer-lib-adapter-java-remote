@@ -1,5 +1,15 @@
 # Lightstreamer Changelog - SDK for Java Remote Adapters
 
+## [current state]
+
+*Compatible with Adapter Remoting Infrastructure since Server version 7.3.*  
+*Compatible with code developed with the previous version*  
+
+**Bug Fixes**
+
+- Fixed a race condition in the connection startup phase which could have caused the RAC message not to be issued first.
+This, in turn, on particular configurations, could have caused the connection attempt to fail for "protocol error".
+
 ## [1.6.0] (20-09-2022)
 
 *Compatible with Adapter Remoting Infrastructure since Server version 7.3.*  

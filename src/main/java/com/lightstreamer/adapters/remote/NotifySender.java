@@ -87,7 +87,7 @@ class NotifySender {
         return _repliesNotNotifies ? "Reply" : "Notify";
     }
 
-    public final void start() {
+    public final void startOut() {
         Thread t = new Thread() {
             public void run() {
                 doRun();

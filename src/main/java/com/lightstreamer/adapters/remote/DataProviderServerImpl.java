@@ -62,18 +62,20 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
     @Override
     public void start() throws RemotingException {
         _log.info("Managing Data Adapter " + super.getName() + " with " + _helper.getPoolType());
-        super.start();
 
-        Map<String, String> credentials = getCredentialParams(true);
-        if (credentials != null) {
-            sendRemoteCredentials(credentials);
-        }
-
+        init();
         synchronized (this) {
             if (_notifySender == null) {
                 throw new RemotingException("Notification channel not established: can't start (please check that a valid notification TCP port has been specified)");
             }
         }
+        startOut();
+
+        Map<String, String> credentials = getCredentialParams(true);
+        if (credentials != null) {
+            sendRemoteCredentials(credentials);
+        }
+        startIn();
     }
     
     private void sendReply(String requestId, String reply) {

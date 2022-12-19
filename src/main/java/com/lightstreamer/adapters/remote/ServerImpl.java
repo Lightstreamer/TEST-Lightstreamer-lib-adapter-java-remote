@@ -270,7 +270,9 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
         }
     }
 
-    public void start() throws RemotingException {
+    public abstract void start() throws RemotingException;
+
+    public final void init() throws RemotingException {
         _log.info("Remote Adapter " + _name + " starting with protocol version " + _maxVersion);
         int keepaliveMillis;
         if (_configuredKeepaliveMillis == null) {
@@ -296,11 +298,31 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
             _notifySender = currNotifySender;
             _requestReceiver = currRequestReceiver;
         }
+    }
         
-        if (currNotifySender != null) {
-            currNotifySender.start();
+    public final void startOut() {
+        RequestReceiver currRequestReceiver;
+        NotifySender currNotifySender;
+        synchronized (this) {
+            currRequestReceiver = _requestReceiver;
+            currNotifySender = _notifySender;
         }
-        currRequestReceiver.start();
+        if (currNotifySender != null) {
+            currNotifySender.startOut();
+        }
+        if (currRequestReceiver != null) {
+            currRequestReceiver.startOut();
+        }
+    }
+
+    public final void startIn() {
+        RequestReceiver currRequestReceiver;
+        synchronized (this) {
+            currRequestReceiver = _requestReceiver;
+        }
+        if (currRequestReceiver != null) {
+            currRequestReceiver.startIn();
+        }
     }
 
     public final void stop() {

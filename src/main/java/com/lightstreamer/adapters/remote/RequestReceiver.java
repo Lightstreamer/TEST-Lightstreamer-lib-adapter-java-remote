@@ -55,9 +55,11 @@ class RequestReceiver {
         _replySender.changeKeepalive(keepaliveMillis, alsoInterrupt);
     }
 
-    public final void start() {
-        _replySender.start();
+    public final void startOut() {
+        _replySender.startOut();
+    }
 
+    public final void startIn() {
         Thread t = new Thread() {
             public void run() {
                 doRun();

@@ -91,12 +91,15 @@ class MetadataProviderServerImpl extends ServerImpl {
     @Override
     public void start() throws RemotingException {
         _log.info("Managing Metadata Adapter " + super.getName() + " with " + _poolType);
-        super.start();
+
+        init();
+        startOut();
 
         Map<String, String> credentials = getCredentialParams(true);
         if (credentials != null) {
             sendRemoteCredentials(credentials);
         }
+        startIn();
     }
 
     public void sendRemoteCredentials(Map<String,String> credentials) throws RemotingException {
