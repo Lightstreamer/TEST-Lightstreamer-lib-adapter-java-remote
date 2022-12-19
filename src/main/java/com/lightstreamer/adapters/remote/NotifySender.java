@@ -39,6 +39,7 @@ class NotifySender {
 
     private final BlockingDeque<String> _queue = new LinkedBlockingDeque<String>();
     private final OutputStreamWriter _writer;
+    private final WriteState _writeState;
     private final boolean _repliesNotNotifies;
     private volatile int _keepaliveMillis;
 
@@ -46,14 +47,23 @@ class NotifySender {
 
     private boolean _stop;
 
-    public NotifySender(String name, OutputStream notifyStream, int keepaliveMillis, ExceptionListener exceptionListener) {
-        this(name, notifyStream, false, keepaliveMillis, exceptionListener);
+    public static class WriteState {
+        NotifySender lastWriter = null;
     }
 
-    public NotifySender(String name, OutputStream notifyStream, boolean repliesNotNotifies, int keepaliveMillis, ExceptionListener exceptionListener) {
+    public NotifySender(String name, OutputStream notifyStream, WriteState sharedWriteState, int keepaliveMillis, ExceptionListener exceptionListener) {
+        this(name, notifyStream, sharedWriteState, false, keepaliveMillis, exceptionListener);
+    }
+
+    public NotifySender(String name, OutputStream notifyStream, WriteState sharedWriteState, boolean repliesNotNotifies, int keepaliveMillis, ExceptionListener exceptionListener) {
         _name = name;
 
         _writer = new OutputStreamWriter(notifyStream, StandardCharsets.UTF_8);
+        if (sharedWriteState != null) {
+            _writeState = sharedWriteState;
+        } else {
+            _writeState = new WriteState();
+        }
 
         _repliesNotNotifies = repliesNotNotifies;
         _keepaliveMillis = keepaliveMillis;
@@ -119,7 +129,19 @@ class NotifySender {
                 break;
             }
  
-            if (reply == null || reply == KEEPALIVE_PILL) {
+            if (reply == null) {
+                synchronized (_writeState) {
+                    if (_writeState.lastWriter == null || _writeState.lastWriter == this) {
+                        reply = KEEPALIVE_PILL;
+                    } else {
+                        // the stream is shared and someone wrote after our last write;
+                        // that stream will be responsible for the next keepalive
+                        continue;
+                    }
+                }
+            }
+
+            if (reply == KEEPALIVE_PILL) {
                 // the timeout (real or simulated) has fired
                 reply = BaseProtocol.METHOD_KEEPALIVE;
                 if (getProperKeepaliveLogger().isDebugEnabled()) {
@@ -132,9 +154,12 @@ class NotifySender {
             }
             
             try {
-                _writer.write(reply);
-                _writer.write(END_LINE);
-                _writer.flush();
+                synchronized (_writeState) {
+                    _writer.write(reply);
+                    _writer.write(END_LINE);
+                    _writer.flush();
+                    _writeState.lastWriter = this;
+                }
                 
             } catch (IOException e) {
                 _exceptionListener.onException(new RemotingException("Exception caught while writing on the " + getProperType().toLowerCase() + " stream: " + e.getMessage(), e));

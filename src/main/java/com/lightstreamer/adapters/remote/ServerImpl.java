@@ -60,6 +60,7 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
 
     protected RequestReceiver _requestReceiver;
     protected NotifySender _notifySender;
+    protected boolean _usingSeparateStreams;
 
     public ServerImpl() {
         _number++;
@@ -286,17 +287,21 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
             _log.info("Keepalives for " + _name + " not set");
         }
 
+        boolean usingSeparateStreams = (_replyStream != _notifyStream);
+        NotifySender.WriteState sharedWriteState = usingSeparateStreams ? null : new NotifySender.WriteState();
+
         RequestReceiver currRequestReceiver = null;
-        currRequestReceiver = new RequestReceiver(_name, _requestStream, _replyStream, keepaliveMillis, this, this);
+        currRequestReceiver = new RequestReceiver(_name, _requestStream, _replyStream, sharedWriteState, keepaliveMillis, this, this);
 
         NotifySender currNotifySender = null;
         if (_notifyStream != null) {
-            currNotifySender = new NotifySender(_name, _notifyStream, keepaliveMillis, this);
+            currNotifySender = new NotifySender(_name, _notifyStream, sharedWriteState, keepaliveMillis, this);
         }
 
         synchronized (this) {
             _notifySender = currNotifySender;
             _requestReceiver = currRequestReceiver;
+            _usingSeparateStreams = usingSeparateStreams;
         }
     }
         

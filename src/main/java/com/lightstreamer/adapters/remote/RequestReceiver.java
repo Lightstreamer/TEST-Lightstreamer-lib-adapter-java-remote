@@ -38,12 +38,12 @@ class RequestReceiver {
 
     private volatile boolean _stop;
 
-    public RequestReceiver(String name, InputStream requestStream, OutputStream replyStream, int keepaliveMillis, RequestListener requestListener, ExceptionListener exceptionListener) {
+    public RequestReceiver(String name, InputStream requestStream, OutputStream replyStream, NotifySender.WriteState sharedWriteState, int keepaliveMillis, RequestListener requestListener, ExceptionListener exceptionListener) {
         _name = name;
 
         _reader = new LineNumberReader(new InputStreamReader(requestStream, StandardCharsets.UTF_8));
 
-        _replySender = new NotifySender(name, replyStream, true, keepaliveMillis, exceptionListener);
+        _replySender = new NotifySender(name, replyStream, sharedWriteState, true, keepaliveMillis, exceptionListener);
 
         _requestListener = requestListener;
         _exceptionListener = exceptionListener;

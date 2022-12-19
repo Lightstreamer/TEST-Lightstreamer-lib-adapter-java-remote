@@ -202,11 +202,13 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
         String notify = DataProviderProtocol.writeRemoteCredentials(credentials);
         NotifySender currNotifySender;
         RequestReceiver currRequestReceiver;
+        boolean usingSeparateStreams;
         synchronized (this) {
             currNotifySender = _notifySender;
             currRequestReceiver = _requestReceiver;
+            usingSeparateStreams = _usingSeparateStreams;
         }
-        if (currNotifySender != null) {
+        if (currNotifySender != null && usingSeparateStreams) {
             currNotifySender.sendNotify(notify);
         }
         if (currRequestReceiver != null) {
