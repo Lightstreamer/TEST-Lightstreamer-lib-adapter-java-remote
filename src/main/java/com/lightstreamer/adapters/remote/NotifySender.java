@@ -35,10 +35,10 @@ class NotifySender {
     private static final String STOP_WAITING_PILL = "STOP_WAITING_PILL";
     private static final String KEEPALIVE_PILL = "KEEPALIVE_PILL";
     
-    private String _name;
+    private final String _name;
 
-    private BlockingDeque<String> _queue = new LinkedBlockingDeque<String>();
-    private OutputStreamWriter _writer;
+    private final BlockingDeque<String> _queue = new LinkedBlockingDeque<String>();
+    private final OutputStreamWriter _writer;
     private final boolean _repliesNotNotifies;
     private volatile int _keepaliveMillis;
 
@@ -103,9 +103,6 @@ class NotifySender {
             
             String reply;
             try {
-                /*reply = _queue.pollFirst();
-                if(reply == null) { //currently empty
-                    _writer.flush();*/
                 if (_keepaliveMillis > 0) {
                     reply = _queue.pollFirst(_keepaliveMillis, TimeUnit.MILLISECONDS);
                 } else {
@@ -137,7 +134,7 @@ class NotifySender {
             try {
                 _writer.write(reply);
                 _writer.write(END_LINE);
-                _writer.flush(); //use the above commented code to reduce flush calls
+                _writer.flush();
                 
             } catch (IOException e) {
                 _exceptionListener.onException(new RemotingException("Exception caught while writing on the " + getProperType().toLowerCase() + " stream: " + e.getMessage(), e));
