@@ -5,6 +5,12 @@
 *Compatible with Adapter Remoting Infrastructure since Server version 7.3.*  
 *Compatible with code developed with the previous version*  
 
+**Improvements**
+
+- Added explicit support for the use of the same stream as both the reply and the notify stream for Remote Data Adapters.
+Now the two flows are merged without redundancies and there is no need of a thread-safe stream.
+The use of a unified stream is supported since Server version 7.4, with proper configuration.
+
 **Bug Fixes**
 
 - Fixed a race condition in the connection startup phase which could have caused the RAC message not to be issued first.
