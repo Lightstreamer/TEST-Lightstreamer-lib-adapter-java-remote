@@ -173,8 +173,11 @@ public abstract class Server {
 
     /** 
      * Sets the stream used by the Remote Data Adapter in order to send asynchronous
-     * data to the Proxy Adapter. If the same object provided to setReplyStream
-     * is supplied, then the messages for the two streams will be merged properly.
+     * data to the Proxy Adapter.
+     * Depending on the Proxy Data Adapter configuration, this stream should be
+     * either the same object provided to setReplyStream or a different stream.
+     * In the first case, the outbound messages pertaining to the "Reply" and
+     * "Notify" streams will be merged properly.
      * Currently not used and not needed by the Remote Metadata Adapter.
      * 
      * @param outputStream the stream used by the Remote Adapter in order to send asynchronous
