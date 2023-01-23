@@ -14,6 +14,7 @@
 package com.lightstreamer.adapters.remote;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -100,6 +101,16 @@ class MetadataProviderServerImpl extends ServerImpl {
             sendRemoteCredentials(credentials);
         }
         startIn();
+    }
+
+    @Override
+    protected OutputStream determineNotifyStream(OutputStream replyStream, OutputStream notifyStream)
+            throws RemotingException
+    {
+        if (notifyStream != null) {
+            throw new RemotingException("Notification stream supplied but not expected: can't start");
+        }
+        return null;
     }
 
     public void sendRemoteCredentials(Map<String,String> credentials) throws RemotingException {

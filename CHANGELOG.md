@@ -7,9 +7,10 @@
 
 **Improvements**
 
-- Added explicit support for the use of the same stream as both the reply and the notify stream for Remote Data Adapters.
-Now the two flows are merged without redundancies and there is no need of a thread-safe stream.
-The use of a unified stream is supported since Server version 7.4, with proper configuration.
+- Introduced the support for a single stream instead of two for the communication of the Remote Data Adapters.
+In fact, since Server version 7.4, the Proxy Data Adapter can (and should) be configured to use a single connection for the communication.
+Hence, the setNotifyStream method is now optional for the DataProviderServer class;
+it should be used only for backward compatibility when communicating with a Server version earlier than 7.4.
 
 **Bug Fixes**
 

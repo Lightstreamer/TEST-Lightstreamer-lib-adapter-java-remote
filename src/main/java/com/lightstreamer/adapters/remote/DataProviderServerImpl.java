@@ -14,6 +14,7 @@
 package com.lightstreamer.adapters.remote;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -64,11 +65,6 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
         _log.info("Managing Data Adapter " + super.getName() + " with " + _helper.getPoolType());
 
         init();
-        synchronized (this) {
-            if (_notifySender == null) {
-                throw new RemotingException("Notification channel not established: can't start (please check that a valid notification TCP port has been specified)");
-            }
-        }
         startOut();
 
         Map<String, String> credentials = getCredentialParams(true);
@@ -78,6 +74,22 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
         startIn();
     }
     
+    @Override
+    protected OutputStream determineNotifyStream(OutputStream replyStream, OutputStream notifyStream)
+            throws RemotingException
+    {
+        if (notifyStream == null) {
+            // normal case
+            return replyStream;
+        } else if (notifyStream == replyStream) {
+            // case not explicitly documented but accepted
+            return replyStream;
+        } else {
+            // backward compatibility case
+            return notifyStream;
+        }
+    }
+
     private void sendReply(String requestId, String reply) {
         RequestReceiver currRequestReceiver;
         synchronized (this) {

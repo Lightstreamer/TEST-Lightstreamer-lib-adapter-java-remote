@@ -287,15 +287,23 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
             _log.info("Keepalives for " + _name + " not set");
         }
 
-        boolean usingSeparateStreams = (_replyStream != _notifyStream);
-        NotifySender.WriteState sharedWriteState = usingSeparateStreams ? null : new NotifySender.WriteState();
+        OutputStream currNotifyStream = determineNotifyStream(_replyStream, _notifyStream);
+        boolean usingSeparateStreams;
+        NotifySender.WriteState sharedWriteState;
+        if (currNotifyStream != null) {
+            usingSeparateStreams = (currNotifyStream != _replyStream);
+            sharedWriteState = usingSeparateStreams ? null : new NotifySender.WriteState();
+        } else {
+            usingSeparateStreams = false;
+            sharedWriteState = null;
+        }
 
         RequestReceiver currRequestReceiver = null;
         currRequestReceiver = new RequestReceiver(_name, _requestStream, _replyStream, sharedWriteState, keepaliveMillis, this, this);
 
         NotifySender currNotifySender = null;
-        if (_notifyStream != null) {
-            currNotifySender = new NotifySender(_name, _notifyStream, sharedWriteState, keepaliveMillis, this);
+        if (currNotifyStream != null) {
+            currNotifySender = new NotifySender(_name, currNotifyStream, sharedWriteState, keepaliveMillis, this);
         }
 
         synchronized (this) {
@@ -305,6 +313,8 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
         }
     }
         
+    protected abstract OutputStream determineNotifyStream(OutputStream replyStream, OutputStream notifyStream) throws RemotingException;
+
     public final void startOut() {
         RequestReceiver currRequestReceiver;
         NotifySender currNotifySender;
