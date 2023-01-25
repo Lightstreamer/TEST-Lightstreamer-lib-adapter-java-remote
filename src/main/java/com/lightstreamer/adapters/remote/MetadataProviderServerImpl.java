@@ -14,7 +14,6 @@
 package com.lightstreamer.adapters.remote;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -93,7 +92,7 @@ class MetadataProviderServerImpl extends ServerImpl {
     public void start() throws RemotingException {
         _log.info("Managing Metadata Adapter " + super.getName() + " with " + _poolType);
 
-        init();
+        init(false);
         startOut();
 
         Map<String, String> credentials = getCredentialParams(true);
@@ -101,11 +100,6 @@ class MetadataProviderServerImpl extends ServerImpl {
             sendRemoteCredentials(credentials);
         }
         startIn();
-    }
-
-    @Override
-    protected OutputStream determineNotifyStream(OutputStream replyStream) {
-        return null;
     }
 
     public void sendRemoteCredentials(Map<String,String> credentials) throws RemotingException {

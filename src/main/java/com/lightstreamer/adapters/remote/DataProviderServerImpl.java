@@ -14,7 +14,6 @@
 package com.lightstreamer.adapters.remote;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -64,7 +63,7 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
     public void start() throws RemotingException {
         _log.info("Managing Data Adapter " + super.getName() + " with " + _helper.getPoolType());
 
-        init();
+        init(true);
         startOut();
 
         Map<String, String> credentials = getCredentialParams(true);
@@ -74,11 +73,6 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
         startIn();
     }
     
-    @Override
-    protected OutputStream determineNotifyStream(OutputStream replyStream) {
-        return replyStream;
-    }
-
     private void sendReply(String requestId, String reply) {
         RequestReceiver currRequestReceiver;
         synchronized (this) {

@@ -263,7 +263,7 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
 
     public abstract void start() throws RemotingException;
 
-    public final void init() throws RemotingException {
+    public final void init(boolean withNotifies) throws RemotingException {
         _log.info("Remote Adapter " + _name + " starting with protocol version " + _maxVersion);
         int keepaliveMillis;
         if (_configuredKeepaliveMillis == null) {
@@ -277,9 +277,8 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
             _log.info("Keepalives for " + _name + " not set");
         }
 
-        OutputStream currNotifyStream = determineNotifyStream(_replyStream);
         NotifySender.WriteState sharedWriteState;
-        if (currNotifyStream != null) {
+        if (withNotifies) {
             sharedWriteState = new NotifySender.WriteState();
         } else {
             sharedWriteState = null;
@@ -289,8 +288,8 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
         currRequestReceiver = new RequestReceiver(_name, _requestStream, _replyStream, sharedWriteState, keepaliveMillis, this, this);
 
         NotifySender currNotifySender = null;
-        if (currNotifyStream != null) {
-            currNotifySender = new NotifySender(_name, currNotifyStream, sharedWriteState, keepaliveMillis, this);
+        if (withNotifies) {
+            currNotifySender = new NotifySender(_name, _replyStream, sharedWriteState, keepaliveMillis, this);
         }
 
         synchronized (this) {
@@ -298,8 +297,6 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
             _requestReceiver = currRequestReceiver;
         }
     }
-        
-    protected abstract OutputStream determineNotifyStream(OutputStream replyStream);
 
     public final void startOut() {
         RequestReceiver currRequestReceiver;
