@@ -75,19 +75,8 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
     }
     
     @Override
-    protected OutputStream determineNotifyStream(OutputStream replyStream, OutputStream notifyStream)
-            throws RemotingException
-    {
-        if (notifyStream == null) {
-            // normal case
-            return replyStream;
-        } else if (notifyStream == replyStream) {
-            // case not explicitly documented but accepted
-            return replyStream;
-        } else {
-            // backward compatibility case
-            return notifyStream;
-        }
+    protected OutputStream determineNotifyStream(OutputStream replyStream) {
+        return replyStream;
     }
 
     private void sendReply(String requestId, String reply) {
@@ -212,16 +201,9 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
     
     public void sendRemoteCredentials(Map<String,String> credentials) throws RemotingException {
         String notify = DataProviderProtocol.writeRemoteCredentials(credentials);
-        NotifySender currNotifySender;
         RequestReceiver currRequestReceiver;
-        boolean usingSeparateStreams;
         synchronized (this) {
-            currNotifySender = _notifySender;
             currRequestReceiver = _requestReceiver;
-            usingSeparateStreams = _usingSeparateStreams;
-        }
-        if (currNotifySender != null && usingSeparateStreams) {
-            currNotifySender.sendNotify(notify);
         }
         if (currRequestReceiver != null) {
             currRequestReceiver.sendUnsolicitedMessage(DataProviderProtocol.AUTH_REQUEST_ID, notify, _log);

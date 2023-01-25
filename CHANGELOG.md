@@ -2,15 +2,16 @@
 
 ## [1.7.0] (xx-xx-xxxx)
 
-*Compatible with Adapter Remoting Infrastructure since Server version 7.3.*  
-*Compatible with code developed with the previous version*  
+*Compatible with Adapter Remoting Infrastructure since Server version 7.4.*  
+*May not be compatible with code developed with the previous version; see compatibility notes below.*
+*May not be compatible with binaries developed with the previous version; see compatibility notes below.*
 
 **Improvements**
 
 - Introduced the support for a single stream instead of two for the communication of the Remote Data Adapters.
 In fact, since Server version 7.4, the Proxy Data Adapter can (and should) be configured to use a single connection for the communication.
-Hence, the setNotifyStream method is now optional for the DataProviderServer class;
-it should be used only for backward compatibility when communicating with a Server version earlier than 7.4.
+Hence, the setNotifyStream and getNotifyStream methods of the Server class have been removed.
+**COMPATIBILITY NOTE:** *If a Remote Server launches a Remote Data Adapter, it cannot be upgraded to this SDK version, unless recompiled. This also requires a change in the source code to open a single connection to the Proxy Data Adapter and remove every invocation of setNotifyStream and getNotifyStream. This, in turn, requires the configuration of a single port on the Proxy Data Adapter, which is only possible with Lightstreamer Server 7.4 or later.*
 
 **Bug Fixes**
 

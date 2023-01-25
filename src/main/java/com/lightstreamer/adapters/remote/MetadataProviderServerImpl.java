@@ -104,12 +104,7 @@ class MetadataProviderServerImpl extends ServerImpl {
     }
 
     @Override
-    protected OutputStream determineNotifyStream(OutputStream replyStream, OutputStream notifyStream)
-            throws RemotingException
-    {
-        if (notifyStream != null) {
-            throw new RemotingException("Notification stream supplied but not expected: can't start");
-        }
+    protected OutputStream determineNotifyStream(OutputStream replyStream) {
         return null;
     }
 

@@ -172,38 +172,6 @@ public abstract class Server {
     }
 
     /** 
-     * To be used only when connecting with an old Proxy Data Adapter,
-     * based on two-connections behavior; this allows for backward
-     * compatibility with Server version earlier than 7.4.
-     * Sets the stream that should be used by the Remote Data Adapter
-     * in order to send asynchronous data to the Proxy Data Adapter.
-     * In fact, the configuration for old Proxy Data Adapters required the
-     * specification of a "notify" port, to which a second connection
-     * should be opened, with its own stream.<BR>
-     * Not used and not needed by the Remote Metadata Adapter.
-     *  
-     * @param outputStream the stream to be used by the Remote Adapter
-     * in order to send asynchronous data to an old Proxy Data Adapter. 
-     */
-    public final void setNotifyStream(OutputStream outputStream) {
-        if (startedOnce) {
-            throw new IllegalStateException("Reuse of Server object forbidden");
-        }
-        _impl.setNotifyStream(outputStream);
-    }
-    /** 
-     * Gets the stream used by the Remote Adapter in order to send asynchronous
-     * data to an old Proxy Data Adapter.<BR>
-     * Not used and not needed by the Remote Metadata Adapter.
-     * 
-     * @return the stream used by the Remote Adapter in order to send
-     * asynchronous data to an old Proxy Data Adapter, or null. 
-     */
-    public final OutputStream getNotifyStream() {
-        return _impl.getNotifyStream();
-    }
-
-    /** 
      * Sets the handler for error conditions occurring on the Remote Server.
      * By setting the handler, it's possible to override the default
      * exception handling.

@@ -34,7 +34,6 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
 
     private InputStream _requestStream;
     private OutputStream _replyStream;
-    private OutputStream _notifyStream;
     
     private final Integer _configuredKeepaliveMillis;
     
@@ -60,7 +59,6 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
 
     protected RequestReceiver _requestReceiver;
     protected NotifySender _notifySender;
-    protected boolean _usingSeparateStreams;
 
     public ServerImpl() {
         _number++;
@@ -68,7 +66,6 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
 
         _requestStream = null;
         _replyStream = null;
-        _notifyStream = null;
 
         _exceptionHandler = null;
 
@@ -124,13 +121,6 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
     }
     public final OutputStream getReplyStream() {
         return _replyStream;
-    }
-
-    public final void setNotifyStream(OutputStream value) {
-        _notifyStream = value;
-    }
-    public final OutputStream getNotifyStream() {
-        return _notifyStream;
     }
 
     public final void setExceptionHandler(ExceptionHandler value) {
@@ -287,14 +277,11 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
             _log.info("Keepalives for " + _name + " not set");
         }
 
-        OutputStream currNotifyStream = determineNotifyStream(_replyStream, _notifyStream);
-        boolean usingSeparateStreams;
+        OutputStream currNotifyStream = determineNotifyStream(_replyStream);
         NotifySender.WriteState sharedWriteState;
         if (currNotifyStream != null) {
-            usingSeparateStreams = (currNotifyStream != _replyStream);
-            sharedWriteState = usingSeparateStreams ? null : new NotifySender.WriteState();
+            sharedWriteState = new NotifySender.WriteState();
         } else {
-            usingSeparateStreams = false;
             sharedWriteState = null;
         }
 
@@ -309,11 +296,10 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
         synchronized (this) {
             _notifySender = currNotifySender;
             _requestReceiver = currRequestReceiver;
-            _usingSeparateStreams = usingSeparateStreams;
         }
     }
         
-    protected abstract OutputStream determineNotifyStream(OutputStream replyStream, OutputStream notifyStream) throws RemotingException;
+    protected abstract OutputStream determineNotifyStream(OutputStream replyStream);
 
     public final void startOut() {
         RequestReceiver currRequestReceiver;
@@ -373,13 +359,6 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
             } catch (IOException e) {
             }
             _replyStream = null;
-        }
-        if (_notifyStream != null) {
-            try {
-                _notifyStream.close();
-            } catch (IOException e) {
-            }
-            _notifyStream = null;
         }
         // Invokes an hook for subclasses, to give them the opportunity
         // to clean up.

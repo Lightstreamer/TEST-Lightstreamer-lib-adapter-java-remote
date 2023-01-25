@@ -22,9 +22,9 @@ In this specific project we provide the full sorce code that makes up the <b>Lig
 
 ## Compatibility
 
-The library is compatible with Adapter Remoting Infrastructure since Server version 7.3.
+The library is compatible with Adapter Remoting Infrastructure since Server version 7.4.
 
-For a version of this library compatible with earlier versions of Lightstreamer Server see [this tag](https://github.com/Lightstreamer/Lightstreamer-lib-adapter-java-remote/tree/v1.5.0).
+For a version of this library compatible with earlier versions of Lightstreamer Server see [this tag](https://github.com/Lightstreamer/Lightstreamer-lib-adapter-java-remote/tree/v1.6.0).
 
 ## Using the API
 
