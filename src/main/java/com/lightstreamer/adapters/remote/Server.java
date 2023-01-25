@@ -185,7 +185,7 @@ public abstract class Server {
      * @param outputStream the stream to be used by the Remote Adapter
      * in order to send asynchronous data to an old Proxy Data Adapter. 
      */
-    public final void setNotifyStream(@Nonnull OutputStream outputStream) {
+    public final void setNotifyStream(OutputStream outputStream) {
         if (startedOnce) {
             throw new IllegalStateException("Reuse of Server object forbidden");
         }
@@ -199,7 +199,6 @@ public abstract class Server {
      * @return the stream used by the Remote Adapter in order to send
      * asynchronous data to an old Proxy Data Adapter, or null. 
      */
-    @Nonnull
     public final OutputStream getNotifyStream() {
         return _impl.getNotifyStream();
     }
