@@ -60,6 +60,19 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
     }
     
     @Override
+    protected String getSupportedVersion(String proxyVersion) throws VersionException {
+        assert (_maxVersion.equals("1.9.1")); // to be kept aligned when upgrading
+        if (proxyVersion != null && proxyVersion.equals("1.9.0")) {
+            // the protocols are compatible, but this identifies an old Server version
+            // which doesn't support single connection for Data Adapters;
+            // hence we prefer not to accept, because, otherwise, the connection would fail anyway
+            _log.info("Received Proxy Adapter protocol version as " + proxyVersion + " for Data Adapter " + getName() + ": Proxy Adapter incompatible.");
+            throw new VersionException("Unsupported Proxy Adapter version");
+        }
+        return super.getSupportedVersion(proxyVersion);
+    }
+    
+    @Override
     public void start() throws RemotingException {
         _log.info("Managing Data Adapter " + super.getName() + " with " + _helper.getPoolType());
 

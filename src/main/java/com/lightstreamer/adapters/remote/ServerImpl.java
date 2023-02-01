@@ -30,7 +30,7 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
 
     private String _name;
     
-    protected final String _maxVersion = "1.9.0";
+    protected final String _maxVersion = "1.9.1";
 
     private InputStream _requestStream;
     private OutputStream _replyStream;
@@ -131,10 +131,10 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
     }
 
     protected String getSupportedVersion(String proxyVersion) throws VersionException {
-        assert (_maxVersion.equals("1.9.0")); // to be kept aligned when upgrading
+        assert (_maxVersion.equals("1.9.1")); // to be kept aligned when upgrading
         
         if (proxyVersion == null) {
-            // protocol version 1.8.0 or earlier, not supported and not negotiable
+            // protocol version 1.8.0 or earlier, not supported
             throw new VersionException("Unsupported protocol version");
         } else {
             // protocol version specified in proxyVersion (must be 1.8.2 or later);
@@ -142,17 +142,12 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
             // and hope that the proxy supports it as well;
             // if we supported a higher version, we could fail here,
             // but we can still advertise it and let the proxy refuse
-            if (proxyVersion.equals("1.8.0")) {
-                throw new VersionException("Unexpected protocol version number: " + proxyVersion);
-                // note: in principle, we should also refuse for inconsistency
-                // any protocol lower than 1.8.0 received through a remote init
-            } else if (proxyVersion.equals("1.8.1")) {
-                // temporary version that was used internally but never published
-                throw new VersionException("Unsupported reserved protocol version number: " + proxyVersion);
-            } else if (proxyVersion.equals("1.8.2") || proxyVersion.equals("1.8.3")) {
+            if (proxyVersion.startsWith("1.8.")) {
                 _log.info("Received Proxy Adapter protocol version as " + proxyVersion + " for " + _name + ": no longer supported.");
-                return _maxVersion;
-                    // the upgrade will probably be refused by the caller
+                throw new VersionException("Unsupported protocol version");
+            } else if (proxyVersion.equals("1.9.0")) {
+                assert (false); // must have been handled by the subclass
+                return null;
             } else if (proxyVersion.equals(_maxVersion)) {
                 _log.info("Received Proxy Adapter protocol version as " + proxyVersion + " for " + _name + ": versions match.");
                 return _maxVersion;

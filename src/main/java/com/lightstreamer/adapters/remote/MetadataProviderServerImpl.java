@@ -89,6 +89,19 @@ class MetadataProviderServerImpl extends ServerImpl {
     }
 
     @Override
+    protected String getSupportedVersion(String proxyVersion) throws VersionException {
+        assert (_maxVersion.equals("1.9.1")); // to be kept aligned when upgrading
+        if (proxyVersion != null && proxyVersion.equals("1.9.0")) {
+            // the protocols are compatible, but this identifies an old Server version
+            // which doesn't support single connection for Data Adapters;
+            // since this does not affect Metadata Adapters, we can accept
+            _log.info("Received Proxy Adapter protocol version as " + proxyVersion + " for Metadata Adapter " + getName() + ": compatible.");
+            return _maxVersion;
+        }
+        return super.getSupportedVersion(proxyVersion);
+    }
+    
+    @Override
     public void start() throws RemotingException {
         _log.info("Managing Metadata Adapter " + super.getName() + " with " + _poolType);
 

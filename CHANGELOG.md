@@ -12,6 +12,7 @@
 In fact, since Server version 7.4, the Proxy Data Adapter can (and should) be configured to use a single connection for the communication.
 Hence, the setNotifyStream and getNotifyStream methods of the Server class have been removed.
 **COMPATIBILITY NOTE:** *If a Remote Server launches a Remote Data Adapter, it cannot be upgraded to this SDK version, unless recompiled. This also requires a change in the source code to open a single connection to the Proxy Data Adapter and remove every invocation of setNotifyStream and getNotifyStream. This, in turn, requires the configuration of a single port on the Proxy Data Adapter, which is only possible with Lightstreamer Server 7.4 or later.*
+**COMPATIBILITY NOTE:** *If a Remote Server only launches Remote Metadata Adapters, the compatibility with Server version 7.3 is kept.*
 
 **Bug Fixes**
 
