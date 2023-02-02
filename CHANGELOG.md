@@ -6,7 +6,7 @@
 *May not be compatible with code developed with the previous version; see compatibility notes below.*
 *May not be compatible with binaries developed with the previous version; see compatibility notes below.*
 
-**Improvements**
+**New Features**
 
 - Introduced the support for a single stream instead of two for the communication of the Remote Data Adapters.
 In fact, since Server version 7.4, the Proxy Data Adapter can (and should) be configured to use a single connection for the communication.
