@@ -24,26 +24,26 @@ import java.nio.charset.StandardCharsets;
 import com.lightstreamer.log.LogManager;
 import com.lightstreamer.log.Logger;
 
-class RequestReceiver {
+class RequestManager {
     private static Logger _log = LogManager.getLogger("com.lightstreamer.adapters.remote.RequestReply.requests");
 
     private String _name;
 
     private LineNumberReader _reader;
 
-    private NotifySender _replySender;
+    private MessageSender _replySender;
 
     private RequestListener _requestListener;
     private ExceptionListener _exceptionListener;
 
     private volatile boolean _stop;
 
-    public RequestReceiver(String name, InputStream requestStream, OutputStream replyStream, NotifySender.WriteState sharedWriteState, int keepaliveMillis, RequestListener requestListener, ExceptionListener exceptionListener) {
+    public RequestManager(String name, InputStream requestStream, OutputStream replyStream, MessageSender.WriteState sharedWriteState, int keepaliveMillis, RequestListener requestListener, ExceptionListener exceptionListener) {
         _name = name;
 
         _reader = new LineNumberReader(new InputStreamReader(requestStream, StandardCharsets.UTF_8));
 
-        _replySender = new NotifySender(name, replyStream, sharedWriteState, true, keepaliveMillis, exceptionListener);
+        _replySender = new MessageSender(name, replyStream, sharedWriteState, true, keepaliveMillis, exceptionListener);
 
         _requestListener = requestListener;
         _exceptionListener = exceptionListener;
@@ -122,7 +122,7 @@ class RequestReceiver {
         reply = identifiedReply.toString();
         properLogger.debug("Processed request: " + requestId);
 
-        _replySender.sendNotify(reply);
+        _replySender.sendMessage(reply);
     }
 
     public final void sendUnsolicitedMessage(String virtualRequestId, String msg, Logger properLogger) {
@@ -134,7 +134,7 @@ class RequestReceiver {
         msg = identifiedReply.toString();
         properLogger.debug("Sending unsolicited message");
 
-        _replySender.sendNotify(msg);
+        _replySender.sendMessage(msg);
     }
 
     public final void sendRemoteRequest(String requestId, String msg, Logger properLogger) {
@@ -146,7 +146,7 @@ class RequestReceiver {
         msg = identifiedReply.toString();
         properLogger.debug("Sending remote request: " + requestId);
 
-        _replySender.sendNotify(msg);
+        _replySender.sendMessage(msg);
     }
 
     private void onRequestReceived(String request) {

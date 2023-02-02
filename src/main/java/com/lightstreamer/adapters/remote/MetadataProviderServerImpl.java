@@ -117,12 +117,12 @@ class MetadataProviderServerImpl extends ServerImpl {
 
     public void sendRemoteCredentials(Map<String,String> credentials) throws RemotingException {
         String notify = MetadataProviderProtocol.writeRemoteCredentials(credentials);
-        RequestReceiver currRequestReceiver;
+        RequestManager currRequestManager;
         synchronized (this) {
-            currRequestReceiver = _requestReceiver;
+            currRequestManager = _requestManager;
         }
-        if (currRequestReceiver != null) {
-            currRequestReceiver.sendUnsolicitedMessage(MetadataProviderProtocol.AUTH_REQUEST_ID, notify, _log);
+        if (currRequestManager != null) {
+            currRequestManager.sendUnsolicitedMessage(MetadataProviderProtocol.AUTH_REQUEST_ID, notify, _log);
         }
     }
 
@@ -541,22 +541,22 @@ class MetadataProviderServerImpl extends ServerImpl {
     }
     
     private void sendReply(String requestId, String reply) {
-        RequestReceiver currRequestReceiver;
+        RequestManager currRequestManager;
         synchronized (this) {
-            currRequestReceiver = _requestReceiver;
+            currRequestManager = _requestManager;
         }
-        if (currRequestReceiver != null) {
-            currRequestReceiver.sendReply(requestId, reply, _log);
+        if (currRequestManager != null) {
+            currRequestManager.sendReply(requestId, reply, _log);
         }
     }
     
     private void sendRemoteRequest(String requestId, String reply) {
-        RequestReceiver currRequestReceiver;
+        RequestManager currRequestManager;
         synchronized (this) {
-            currRequestReceiver = _requestReceiver;
+            currRequestManager = _requestManager;
         }
-        if (currRequestReceiver != null) {
-            currRequestReceiver.sendRemoteRequest(requestId, reply, _log);
+        if (currRequestManager != null) {
+            currRequestManager.sendRemoteRequest(requestId, reply, _log);
         }
     }
     

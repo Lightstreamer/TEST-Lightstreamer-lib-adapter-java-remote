@@ -87,22 +87,22 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
     }
     
     private void sendReply(String requestId, String reply) {
-        RequestReceiver currRequestReceiver;
+        RequestManager currRequestManager;
         synchronized (this) {
-            currRequestReceiver = _requestReceiver;
+            currRequestManager = _requestManager;
         }
-        if (currRequestReceiver != null) {
-            currRequestReceiver.sendReply(requestId, reply, _log);
+        if (currRequestManager != null) {
+            currRequestManager.sendReply(requestId, reply, _log);
         }
     }
     
     private void sendNotify(String notify) {
-        NotifySender currNotifySender;
+        MessageSender currNotifySender;
         synchronized (this) {
             currNotifySender = _notifySender;
         }
         if (currNotifySender != null) {
-            currNotifySender.sendNotify(notify);
+            currNotifySender.sendMessage(notify);
         }
     }
     
@@ -207,13 +207,13 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
     }
     
     public void sendRemoteCredentials(Map<String,String> credentials) throws RemotingException {
-        String notify = DataProviderProtocol.writeRemoteCredentials(credentials);
-        RequestReceiver currRequestReceiver;
+        String message = DataProviderProtocol.writeRemoteCredentials(credentials);
+        RequestManager currRequestManager;
         synchronized (this) {
-            currRequestReceiver = _requestReceiver;
+            currRequestManager = _requestManager;
         }
-        if (currRequestReceiver != null) {
-            currRequestReceiver.sendUnsolicitedMessage(DataProviderProtocol.AUTH_REQUEST_ID, notify, _log);
+        if (currRequestManager != null) {
+            currRequestManager.sendUnsolicitedMessage(DataProviderProtocol.AUTH_REQUEST_ID, message, _log);
         }
     }
 

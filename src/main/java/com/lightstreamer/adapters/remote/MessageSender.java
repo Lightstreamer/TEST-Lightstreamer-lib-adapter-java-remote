@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 import com.lightstreamer.log.LogManager;
 import com.lightstreamer.log.Logger;
 
-class NotifySender {
+class MessageSender {
     private static final Logger _replog = LogManager.getLogger("com.lightstreamer.adapters.remote.RequestReply.replies");
     private static final Logger _notlog = LogManager.getLogger("com.lightstreamer.adapters.remote.RequestReply.notifications");
     private static final Logger _repKlog = LogManager.getLogger("com.lightstreamer.adapters.remote.RequestReply.replies.keepalives");
@@ -40,7 +40,7 @@ class NotifySender {
     private final BlockingDeque<String> _queue = new LinkedBlockingDeque<String>();
     private final OutputStreamWriter _writer;
     private final WriteState _writeState;
-    private final boolean _repliesNotNotifies;
+    private final boolean _forReplies;
     private volatile int _keepaliveMillis;
 
     private ExceptionListener _exceptionListener;
@@ -48,24 +48,24 @@ class NotifySender {
     private boolean _stop;
 
     public static class WriteState {
-        NotifySender lastWriter = null;
+        MessageSender lastWriter = null;
     }
 
-    public NotifySender(String name, OutputStream notifyStream, WriteState sharedWriteState, int keepaliveMillis, ExceptionListener exceptionListener) {
-        this(name, notifyStream, sharedWriteState, false, keepaliveMillis, exceptionListener);
+    public MessageSender(String name, OutputStream stream, WriteState sharedWriteState, int keepaliveMillis, ExceptionListener exceptionListener) {
+        this(name, stream, sharedWriteState, false, keepaliveMillis, exceptionListener);
     }
 
-    public NotifySender(String name, OutputStream notifyStream, WriteState sharedWriteState, boolean repliesNotNotifies, int keepaliveMillis, ExceptionListener exceptionListener) {
+    public MessageSender(String name, OutputStream stream, WriteState sharedWriteState, boolean forReplies, int keepaliveMillis, ExceptionListener exceptionListener) {
         _name = name;
 
-        _writer = new OutputStreamWriter(notifyStream, StandardCharsets.UTF_8);
+        _writer = new OutputStreamWriter(stream, StandardCharsets.UTF_8);
         if (sharedWriteState != null) {
             _writeState = sharedWriteState;
         } else {
             _writeState = new WriteState();
         }
 
-        _repliesNotNotifies = repliesNotNotifies;
+        _forReplies = forReplies;
         _keepaliveMillis = keepaliveMillis;
 
         _exceptionListener = exceptionListener;
@@ -86,15 +86,15 @@ class NotifySender {
     }
 
     private Logger getProperLogger() {
-        return _repliesNotNotifies ? _replog : _notlog;
+        return _forReplies ? _replog : _notlog;
     }
 
     private Logger getProperKeepaliveLogger() {
-        return _repliesNotNotifies ? _repKlog : _notKlog;
+        return _forReplies ? _repKlog : _notKlog;
     }
 
     private String getProperType() {
-        return _repliesNotNotifies ? "Reply" : "Notify";
+        return _forReplies ? "Reply" : "Notify";
     }
 
     public final void startOut() {
@@ -111,12 +111,12 @@ class NotifySender {
 
         while (!_stop) { //might as well be while(true)
             
-            String reply;
+            String msg;
             try {
                 if (_keepaliveMillis > 0) {
-                    reply = _queue.pollFirst(_keepaliveMillis, TimeUnit.MILLISECONDS);
+                    msg = _queue.pollFirst(_keepaliveMillis, TimeUnit.MILLISECONDS);
                 } else {
-                    reply = _queue.takeFirst();
+                    msg = _queue.takeFirst();
                 }
                 //}
                 
@@ -125,14 +125,14 @@ class NotifySender {
                 break;
             }
             
-            if (reply == STOP_WAITING_PILL) {
+            if (msg == STOP_WAITING_PILL) {
                 break;
             }
  
-            if (reply == null) {
+            if (msg == null) {
                 synchronized (_writeState) {
                     if (_writeState.lastWriter == null || _writeState.lastWriter == this) {
-                        reply = KEEPALIVE_PILL;
+                        msg = KEEPALIVE_PILL;
                     } else {
                         // the stream is shared and someone wrote after our last write;
                         // that stream will be responsible for the next keepalive
@@ -141,21 +141,21 @@ class NotifySender {
                 }
             }
 
-            if (reply == KEEPALIVE_PILL) {
+            if (msg == KEEPALIVE_PILL) {
                 // the timeout (real or simulated) has fired
-                reply = BaseProtocol.METHOD_KEEPALIVE;
+                msg = BaseProtocol.METHOD_KEEPALIVE;
                 if (getProperKeepaliveLogger().isDebugEnabled()) {
-                    getProperKeepaliveLogger().debug(getProperType() + " line: " + reply);
+                    getProperKeepaliveLogger().debug(getProperType() + " line: " + msg);
                 }
             } else {
                 if (getProperLogger().isDebugEnabled()) {
-                    getProperLogger().debug(getProperType() + " line: " + reply);
+                    getProperLogger().debug(getProperType() + " line: " + msg);
                 }
             }
             
             try {
                 synchronized (_writeState) {
-                    _writer.write(reply);
+                    _writer.write(msg);
                     _writer.write(END_LINE);
                     _writer.flush();
                     _writeState.lastWriter = this;
@@ -180,21 +180,21 @@ class NotifySender {
         }
     }
 
-    public final void sendNotify(String notify) {
-        if (!_repliesNotNotifies) {
+    public final void sendMessage(String msg) {
+        if (!_forReplies) {
             long millis = new Date().getTime(); 
 
             StringBuilder timedNotify = new StringBuilder();
             timedNotify.append(millis);
             timedNotify.append(RemotingProtocol.SEP);
-            timedNotify.append(notify);
+            timedNotify.append(msg);
 
-            notify = timedNotify.toString();
+            msg = timedNotify.toString();
         }
 
         //enqueue
         try {
-            _queue.putLast(notify);
+            _queue.putLast(msg);
         } catch (InterruptedException e) {
         }
 

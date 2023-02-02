@@ -57,8 +57,8 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
 
     private ExceptionHandler _exceptionHandler;
 
-    protected RequestReceiver _requestReceiver;
-    protected NotifySender _notifySender;
+    protected RequestManager _requestManager;
+    protected MessageSender _notifySender;
 
     public ServerImpl() {
         _number++;
@@ -69,7 +69,7 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
 
         _exceptionHandler = null;
 
-        _requestReceiver = null;
+        _requestManager = null;
         _notifySender = null;
 
         String keepaliveConf = System.getProperty("lightstreamer.keepalive.millis");
@@ -177,17 +177,17 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
     }
 
     private void changeKeepalive(int keepaliveTime) {
-        NotifySender currNotifySender;
-        RequestReceiver currRequestReceiver;
+        MessageSender currNotifySender;
+        RequestManager currRequestManager;
         synchronized (this) {
             currNotifySender = _notifySender;
-            currRequestReceiver = _requestReceiver;
+            currRequestManager = _requestManager;
         }
         if (currNotifySender != null) {
             currNotifySender.changeKeepalive(keepaliveTime, true);
         }
-        if (currRequestReceiver != null) {
-            currRequestReceiver.changeKeepalive(keepaliveTime, false);
+        if (currRequestManager != null) {
+            currRequestManager.changeKeepalive(keepaliveTime, false);
             // interruption not needed, since in this context we are about to reply
         }
     }
@@ -272,64 +272,64 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
             _log.info("Keepalives for " + _name + " not set");
         }
 
-        NotifySender.WriteState sharedWriteState;
+        MessageSender.WriteState sharedWriteState;
         if (withNotifies) {
-            sharedWriteState = new NotifySender.WriteState();
+            sharedWriteState = new MessageSender.WriteState();
         } else {
             sharedWriteState = null;
         }
 
-        RequestReceiver currRequestReceiver = null;
-        currRequestReceiver = new RequestReceiver(_name, _requestStream, _replyStream, sharedWriteState, keepaliveMillis, this, this);
+        RequestManager currRequestManager = null;
+        currRequestManager = new RequestManager(_name, _requestStream, _replyStream, sharedWriteState, keepaliveMillis, this, this);
 
-        NotifySender currNotifySender = null;
+        MessageSender currNotifySender = null;
         if (withNotifies) {
-            currNotifySender = new NotifySender(_name, _replyStream, sharedWriteState, keepaliveMillis, this);
+            currNotifySender = new MessageSender(_name, _replyStream, sharedWriteState, keepaliveMillis, this);
         }
 
         synchronized (this) {
             _notifySender = currNotifySender;
-            _requestReceiver = currRequestReceiver;
+            _requestManager = currRequestManager;
         }
     }
 
     public final void startOut() {
-        RequestReceiver currRequestReceiver;
-        NotifySender currNotifySender;
+        RequestManager currRequestManager;
+        MessageSender currNotifySender;
         synchronized (this) {
-            currRequestReceiver = _requestReceiver;
+            currRequestManager = _requestManager;
             currNotifySender = _notifySender;
         }
         if (currNotifySender != null) {
             currNotifySender.startOut();
         }
-        if (currRequestReceiver != null) {
-            currRequestReceiver.startOut();
+        if (currRequestManager != null) {
+            currRequestManager.startOut();
         }
     }
 
     public final void startIn() {
-        RequestReceiver currRequestReceiver;
+        RequestManager currRequestManager;
         synchronized (this) {
-            currRequestReceiver = _requestReceiver;
+            currRequestManager = _requestManager;
         }
-        if (currRequestReceiver != null) {
-            currRequestReceiver.startIn();
+        if (currRequestManager != null) {
+            currRequestManager.startIn();
         }
     }
 
     public final void stop() {
-        RequestReceiver currRequestReceiver;
-        NotifySender currNotifySender;
+        RequestManager currRequestManager;
+        MessageSender currNotifySender;
         synchronized (this) {
-            currRequestReceiver = _requestReceiver;
-            _requestReceiver = null;
+            currRequestManager = _requestManager;
+            _requestManager = null;
             currNotifySender = _notifySender;
             _notifySender = null;
         }
         
-        if (currRequestReceiver != null) {
-            currRequestReceiver.quit();
+        if (currRequestManager != null) {
+            currRequestManager.quit();
         }
         if (currNotifySender != null) {
             currNotifySender.quit();
