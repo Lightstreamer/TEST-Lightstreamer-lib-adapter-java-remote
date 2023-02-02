@@ -28,8 +28,7 @@ import com.lightstreamer.log.Logger;
 class MessageSender {
     private static final Logger _replog = LogManager.getLogger("com.lightstreamer.adapters.remote.RequestReply.replies");
     private static final Logger _notlog = LogManager.getLogger("com.lightstreamer.adapters.remote.RequestReply.notifications");
-    private static final Logger _repKlog = LogManager.getLogger("com.lightstreamer.adapters.remote.RequestReply.replies.keepalives");
-    private static final Logger _notKlog = LogManager.getLogger("com.lightstreamer.adapters.remote.RequestReply.notifications.keepalives");
+    private static final Logger _keeplog = LogManager.getLogger("com.lightstreamer.adapters.remote.RequestReply.keepalives");
 
     private static final String END_LINE = "\r\n";
     private static final String STOP_WAITING_PILL = "STOP_WAITING_PILL";
@@ -89,10 +88,6 @@ class MessageSender {
         return _forReplies ? _replog : _notlog;
     }
 
-    private Logger getProperKeepaliveLogger() {
-        return _forReplies ? _repKlog : _notKlog;
-    }
-
     private String getProperType() {
         return _forReplies ? "Reply" : "Notify";
     }
@@ -144,8 +139,8 @@ class MessageSender {
             if (msg == KEEPALIVE_PILL) {
                 // the timeout (real or simulated) has fired
                 msg = BaseProtocol.METHOD_KEEPALIVE;
-                if (getProperKeepaliveLogger().isDebugEnabled()) {
-                    getProperKeepaliveLogger().debug(getProperType() + " line: " + msg);
+                if (_keeplog.isDebugEnabled()) {
+                    _keeplog.debug(getProperType() + " line: " + msg);
                 }
             } else {
                 if (getProperLogger().isDebugEnabled()) {
