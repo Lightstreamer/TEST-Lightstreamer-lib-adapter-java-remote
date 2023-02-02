@@ -244,14 +244,13 @@ public abstract class Server {
      * The following categories are available to be consumed:
      * <ul>
      *  <li>com.lightstreamer.adapters.remote.Server:<BR>
-     *  with various subloggers, logs xxxxxxxxxxxxxx;<BR>
+     *  with various subloggers, logs the activity of this class and its subclasses;<BR>
      *  at INFO level, adapter lifecycle events are logged;<BR>
-     *  at DEBUG level, request handling is logged.
-     *  </li>
+     *  at DEBUG level, request handling is logged.</li>
      *  <li>com.lightstreamer.adapters.remote.RequestReply:<BR>
-     *  with various subloggers, logs xxxxxxxxxxxxxx;<BR>
+     *  with various subloggers, logs the message exchange activity;<BR>
      *  at INFO level, connection handling lifecycle events are logged;<BR>
-     *  at DEBUG level, inbound and outbound message details are logged.
+     *  at DEBUG level, inbound and outbound message details are logged.</li>
      * </ul>
      *
      * @param loggerProvider A <a href="https://lightstreamer.com/api/ls-log-adapter-java/1-0-2/com/lightstreamer/log/LoggerProvider.html">LoggerProvider</a>

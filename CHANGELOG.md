@@ -19,6 +19,8 @@ Hence, the setNotifyStream and getNotifyStream methods of the Server class have 
 - Fixed a race condition in the connection startup phase which could have caused the RAC message not to be issued first.
 This, in turn, on particular configurations, could have caused the connection attempt to fail for "protocol error".
 
+- Fixed missing descriptions in the setLoggerProvider docs.
+
 ## [1.6.0] (20-09-2022)
 
 *Compatible with Adapter Remoting Infrastructure since Server version 7.3.*  
