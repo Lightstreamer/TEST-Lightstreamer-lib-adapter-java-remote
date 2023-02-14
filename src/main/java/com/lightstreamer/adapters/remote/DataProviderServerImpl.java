@@ -119,6 +119,12 @@ class DataProviderServerImpl extends ServerImpl implements ItemEventListener {
         try {
             boolean snapshotAvailable = _adapter.isSnapshotAvailable(data.itemName);
             if (!snapshotAvailable) {
+                // we have to send an empty snapshot;
+                // this should be done before letting the Data Adapter start the subscription,
+                // to ensure that the snapshot precedes the real time updates;
+                // note that it also precedes the reply to the subscribe request,
+                // hence it may even precede an unsuccessful reply,
+                // but this is not forbidden by the ARI protocol
                 endOfSnapshot(data.itemName);
             }
             _adapter.subscribe(data.itemName);
