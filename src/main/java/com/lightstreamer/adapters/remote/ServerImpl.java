@@ -45,6 +45,8 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
     public static final String USER_PARAM = "user";
     public static final String PASSWORD_PARAM = "password";
     public static final String OUTCOME_PARAM = "enableClosePacket";
+    public static final String SDK_PARAM = "SDK";
+    public static final String SDK_NAME = "Java Remote Adapter SDK";
 
     public static final int MIN_KEEPALIVE_MILLIS = 1000;
         // protection limit; it might be made configurable;
@@ -159,21 +161,18 @@ abstract class ServerImpl implements RequestListener, ExceptionListener, Excepti
     }
     
     protected Map<String, String> getCredentialParams(boolean requestOutcome) {
-        if (_remoteUser != null || _remotePassword != null || requestOutcome) {
-            Map<String, String> _proxyParams = new HashMap<String, String>();
-            if (_remoteUser != null) {
-                _proxyParams.put(USER_PARAM, _remoteUser);
-            }
-            if (_remotePassword != null) {
-                _proxyParams.put(PASSWORD_PARAM, _remotePassword);
-            }
-            if (requestOutcome) {
-                _proxyParams.put(OUTCOME_PARAM, "true");
-            }
-            return _proxyParams;
-        } else {
-            return null;
+        Map<String, String> _proxyParams = new HashMap<String, String>();
+        if (_remoteUser != null) {
+            _proxyParams.put(USER_PARAM, _remoteUser);
         }
+        if (_remotePassword != null) {
+            _proxyParams.put(PASSWORD_PARAM, _remotePassword);
+        }
+        if (requestOutcome) {
+            _proxyParams.put(OUTCOME_PARAM, "true");
+        }
+        _proxyParams.put(SDK_PARAM, SDK_NAME);
+        return _proxyParams;
     }
 
     private void changeKeepalive(int keepaliveTime) {
