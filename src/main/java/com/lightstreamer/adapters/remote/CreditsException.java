@@ -47,8 +47,9 @@ public class CreditsException extends MetadataException {
      * @param msg The detail message.
      * @param userMsg A detail message to be forwarded to the Client. It can
      * be null, in which case an empty string message will be assumed.
-     * The message should be in simple ASCII, otherwise it might be altered in order to be sent to the client;
-     * multiline text is also not allowed.
+     * The message is free, but if it is not in simple ASCII or if it is
+     * multiline, it might be altered in order to be sent to very old
+     * non-TLCP clients.
      */
     public CreditsException(int clientErrorCode, @Nullable String msg, @Nullable String userMsg) {
         super(msg);
