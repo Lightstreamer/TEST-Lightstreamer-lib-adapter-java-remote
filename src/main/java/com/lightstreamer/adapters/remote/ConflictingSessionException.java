@@ -36,9 +36,11 @@ public class ConflictingSessionException extends CreditsException {
      * @param clientErrorCode Error code that can be used to distinguish the kind of problem. It must 
      * be a negative integer, or zero to mean an unspecified problem.
      * @param msg The detail message.
-     * @param userMsg A detail message to be forwarded to the Client. It can be null.
-     * The message should be in simple ASCII, otherwise it might be altered in order to be sent to the client;
-     * multiline text is also not allowed.
+     * @param userMsg A detail message to be forwarded to the Client.
+     * It can be null, in which case an empty string message will be forwarded.
+     * The message is free, but if it is not in simple ASCII or if it is
+     * multiline, it might be altered in order to be sent to very old
+     * non-TLCP clients.
      * @param conflictingSessionID ID of a Session that can be closed in order to eliminate the 
      * reported problem. It must not be null.
      */

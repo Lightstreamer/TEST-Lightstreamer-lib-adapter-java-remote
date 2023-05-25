@@ -45,8 +45,8 @@ public class CreditsException extends MetadataException {
      * @param clientErrorCode Error code that can be used to distinguish the kind of problem. It must 
      * be a negative integer, or zero to mean an unspecified problem.
      * @param msg The detail message.
-     * @param userMsg A detail message to be forwarded to the Client. It can
-     * be null, in which case an empty string message will be assumed.
+     * @param userMsg A detail message to be forwarded to the Client.
+     * It can be null, in which case an empty string message will be forwarded.
      * The message is free, but if it is not in simple ASCII or if it is
      * multiline, it might be altered in order to be sent to very old
      * non-TLCP clients.
@@ -67,6 +67,10 @@ public class CreditsException extends MetadataException {
 
     /** 
      * Gets the error detail message to be forwarded to the client.
+     * If the message is not in simple ASCII or is in multiline format,
+     * the real text sent to very old non-TLCP clients might be altered.
+     * If null, an empty string message will be forwarded instead.
+     * 
      * @return error detail message to be forwarded to the client.
      */
     @Nullable
