@@ -14,6 +14,11 @@ Hence, the setNotifyStream and getNotifyStream methods of the Server class have 
 **COMPATIBILITY NOTE:** *If a Remote Server launches a Remote Data Adapter, it cannot be upgraded to this SDK version, unless recompiled. This also requires a change in the source code to open a single connection to the Proxy Data Adapter and remove every invocation of setNotifyStream and getNotifyStream. This, in turn, requires the configuration of a single port on the Proxy Data Adapter, which is only possible with Lightstreamer Server 7.4 or later.*
 **COMPATIBILITY NOTE:** *If a Remote Server only launches Remote Metadata Adapters, the compatibility with Server version 7.3 is kept.*
 
+**Improvements**
+
+Clarified the meaning of a null value for a "userMsg" argument supplied in a CreditsException: an empty string should be sent to the client.
+**COMPATIBILITY NOTE:** *Previously, the Server used to send the "null" string as a placeholder. Adapters relying on this behavior should now supply "null" explicitly.*
+
 **Bug Fixes**
 
 - Fixed a race condition in the connection startup phase which could have caused the RAC message not to be issued first.

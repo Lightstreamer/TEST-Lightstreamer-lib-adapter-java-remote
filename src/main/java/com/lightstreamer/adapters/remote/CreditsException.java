@@ -45,7 +45,8 @@ public class CreditsException extends MetadataException {
      * @param clientErrorCode Error code that can be used to distinguish the kind of problem. It must 
      * be a negative integer, or zero to mean an unspecified problem.
      * @param msg The detail message.
-     * @param userMsg A detail message to be forwarded to the Client. It can be null.
+     * @param userMsg A detail message to be forwarded to the Client. It can
+     * be null, in which case an empty string message will be assumed.
      * The message should be in simple ASCII, otherwise it might be altered in order to be sent to the client;
      * multiline text is also not allowed.
      */
