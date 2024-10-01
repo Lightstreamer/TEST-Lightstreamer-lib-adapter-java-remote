@@ -1,5 +1,11 @@
 # Lightstreamer Changelog - SDK for Java Remote Adapters
 
+## [current state]
+
+**Bug Fixes**
+
+- Fixed link in the setLoggerProvider docs.
+
 ## [1.7.0] (13-07-2023)
 
 *Compatible with Adapter Remoting Infrastructure since Server version 7.4.*  
