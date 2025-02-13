@@ -750,7 +750,7 @@ class MetadataProviderProtocol extends BaseProtocol {
         try {
             typ = tokenizer.nextToken();
         } catch (NoSuchElementException e) {
-            msg = "Token not found while parsing a " + METHOD_NOTIFY_NEW_SESSION + " request";
+            throw new RemotingException("Token not found while parsing a " + METHOD_NOTIFY_NEW_SESSION + " request");
         }
         
         switch (typ.toCharArray()[0]) {
@@ -760,13 +760,13 @@ class MetadataProviderProtocol extends BaseProtocol {
                 break;
 
             default:
-                msg = "Unknown type '" + typ + "' found while parsing a " + METHOD_NOTIFY_NEW_SESSION + " request";
+                throw new RemotingException("Unknown type '" + typ + "' found while parsing a " + METHOD_NOTIFY_NEW_SESSION + " request");
         }
 
         try {
             typ = tokenizer.nextToken();
         } catch (NoSuchElementException e2) {
-            msg = "Token not found while parsing a " + METHOD_NOTIFY_NEW_SESSION + " request";
+            throw new RemotingException("Token not found while parsing a " + METHOD_NOTIFY_NEW_SESSION + " request");
         }
         switch (typ.toCharArray()[0]) {
 
@@ -775,7 +775,7 @@ class MetadataProviderProtocol extends BaseProtocol {
                 break;
 
             default:
-                msg = "Unknown type '" + typ + "' found while parsing a " + METHOD_NOTIFY_NEW_SESSION + " request";
+                throw new RemotingException("Unknown type '" + typ + "' found while parsing a " + METHOD_NOTIFY_NEW_SESSION + " request");
         }
 
         while (tokenizer.hasMoreTokens()) {

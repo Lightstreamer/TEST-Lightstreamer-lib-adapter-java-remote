@@ -4,6 +4,8 @@
 
 **Bug Fixes**
 
+- Fixed potential NPE upon wrong request syntax.
+
 - Fixed link in the setLoggerProvider docs.
 
 ## [1.7.0] (13-07-2023)
