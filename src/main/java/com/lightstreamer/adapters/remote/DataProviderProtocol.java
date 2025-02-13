@@ -87,7 +87,7 @@ class DataProviderProtocol extends BaseProtocol {
                     re1 = new RemotingException(msg);
                     
             }
-            if (msg != null ) {
+            if (re1 != null ) {
                 throw re1;
             } else {
                 parameters.put(headerName, headerValue);
