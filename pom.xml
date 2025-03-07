@@ -139,6 +139,7 @@
             <version>1.5</version>
             <configuration>
               <keyname>6F29B4D2</keyname>
+              <passphrase>${gpg.passphrase}</passphrase>
             </configuration>
             <executions>
               <execution>
@@ -147,6 +148,13 @@
                 <goals>
                   <goal>sign</goal>
                 </goals>
+                <!-- See https://stackoverflow.com/questions/53992950/maven-gpg-plugin-failing-with-inappropriate-ioctl-for-device-when-running-unde -->
+                <configuration>
+                  <gpgArguments>
+                    <arg>--pinentry-mode</arg>
+                    <arg>loopback</arg>
+                  </gpgArguments>
+                </configuration>
               </execution>
             </executions>
           </plugin>
