@@ -34,7 +34,7 @@ Since the API is available from the Maven Central Repository, to setup your deve
 <dependency>
     <groupId>com.lightstreamer</groupId>
     <artifactId>ls-adapter-remote</artifactId>
-    <version>1.7.1-dev.1</version>
+    <version>1.7.1-dev.5</version>
 </dependency>
 ```
 
@@ -43,10 +43,10 @@ Since the API is available from the Maven Central Repository, to setup your deve
 This project includes a simple full implementation of Remote Metadata Adapter in Java made available as sample for inspiration and/or extension.
 
 The [LiteralBasedProvider](https://github.com/Lightstreamer/Lightstreamer-lib-adapter-java-remote/tree/master/src/main/java/com/lightstreamer/adapters/remote/metadata) is the Remote equivalent of the *LiteralBasedProvider* Metadata Adapter in [Lightstreamer Java In-Process Adapter SDK](https://github.com/Lightstreamer/Lightstreamer-lib-adapter-java-inprocess#literalbasedprovider-metadata-adapter).
-It extends the [com.lightstreamer.adapters.remote.MetadataProviderAdapter](https://lightstreamer.com/sdks/ls-adapter-remote/1.7.1-dev.1/api/com/lightstreamer/adapters/remote/MetadataProviderAdapter.html) abstract class (which in turn implements the [com.lightstreamer.adapters.remote.MetadataProvider](https://lightstreamer.com/sdks/ls-adapter-remote/1.7.0/api/com/lightstreamer/adapters/remote/MetadataProvider.html) interface).
+It extends the [com.lightstreamer.adapters.remote.MetadataProviderAdapter](https://lightstreamer.com/sdks/ls-adapter-remote/1.7.1-dev.5/api/com/lightstreamer/adapters/remote/MetadataProviderAdapter.html) abstract class (which in turn implements the [com.lightstreamer.adapters.remote.MetadataProvider](https://lightstreamer.com/sdks/ls-adapter-remote/1.7.1-dev.5/api/com/lightstreamer/adapters/remote/MetadataProvider.html) interface).
 It is used in Lightstreamer examples and demos based on the Java Remote Adapter SDK, in combination with suitable Data Adapters and Clients.
 
-The LiteralBasedProvider can be configured through suitable initialization parameters. See the [class documentation](https://lightstreamer.com/sdks/ls-adapter-remote/1.7.1-dev.1/api/com/lightstreamer/adapters/remote/metadata/LiteralBasedProvider.html) for details.
+The LiteralBasedProvider can be configured through suitable initialization parameters. See the [class documentation](https://lightstreamer.com/sdks/ls-adapter-remote/1.7.1-dev.5/api/com/lightstreamer/adapters/remote/metadata/LiteralBasedProvider.html) for details.
 
 ## Build
 
@@ -70,7 +70,7 @@ Assuming Maven is installed and available in your path you can build the library
 
 - [Examples](https://demos.lightstreamer.com/?p=lightstreamer&t=adapter&sadapterjava=remote)
 
-- [API Reference](https://lightstreamer.com/sdks/ls-adapter-remote/1.7.1-dev.1/api/index.html)
+- [API Reference](https://lightstreamer.com/sdks/ls-adapter-remote/1.7.1-dev.5/api/index.html)
 
 - [Adapter Remoting Infrastructure Network Protocol Specification](https://lightstreamer.com/api/ls-generic-adapter/latest/ARI%20Protocol.pdf)
 
